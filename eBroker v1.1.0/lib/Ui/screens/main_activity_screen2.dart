@@ -1,6 +1,8 @@
 // ignore_for_file: invalid_use_of_protected_member
+
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
 import 'package:ebroker/data/cubits/outdoorfacility/fetch_outdoor_facility_list.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -14,6 +16,7 @@ import 'package:rive/components.dart';
 import 'package:rive/rive.dart';
 import 'package:rive/src/rive_core/component.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../app/analytics_routes.dart';
 import '../../app/routes.dart';
 import '../../data/Repositories/property_repository.dart';
@@ -70,21 +73,21 @@ List<ScrollController> controllerList = [
 ];
 
 //
-class MainActivity extends StatefulWidget {
+class MainActivity11 extends StatefulWidget {
   final String from;
-  const MainActivity({Key? key, required this.from}) : super(key: key);
+  const MainActivity11({Key? key, required this.from}) : super(key: key);
 
   @override
-  State<MainActivity> createState() => MainActivityState();
+  State<MainActivity11> createState() => MainActivity11State();
 
   static Route route(RouteSettings routeSettings) {
     Map arguments = routeSettings.arguments as Map;
     return BlurredRouter(
-        builder: (_) => MainActivity(from: arguments['from'] as String));
+        builder: (_) => MainActivity11(from: arguments['from'] as String));
   }
 }
 
-class MainActivityState extends State<MainActivity>
+class MainActivity11State extends State<MainActivity11>
     with TickerProviderStateMixin {
   int currtab = 0;
   static final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
@@ -102,10 +105,10 @@ class MainActivityState extends State<MainActivity>
 
   ///Animation for sell and rent button
   late final AnimationController _forSellAnimationController =
-      AnimationController(
-          vsync: this,
-          duration: const Duration(milliseconds: 400),
-          reverseDuration: const Duration(milliseconds: 400));
+  AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+      reverseDuration: const Duration(milliseconds: 400));
   late final AnimationController _forRentController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -114,10 +117,10 @@ class MainActivityState extends State<MainActivity>
   ///END: Animation for sell and rent button
   late final Animation<double> _sellTween = Tween<double>(begin: -50, end: 80)
       .animate(CurvedAnimation(
-          parent: _forSellAnimationController, curve: Curves.easeIn));
+      parent: _forSellAnimationController, curve: Curves.easeIn));
   late final Animation<double> _rentTween = Tween<double>(begin: -50, end: 30)
       .animate(
-          CurvedAnimation(parent: _forRentController, curve: Curves.easeIn));
+      CurvedAnimation(parent: _forRentController, curve: Curves.easeIn));
 
   Map<String, dynamic> riveConfig = AppSettings.riveAnimationConfigurations;
   late var addButtonConfig = riveConfig['add_button'];
@@ -135,7 +138,7 @@ class MainActivityState extends State<MainActivity>
     GuestChecker.setContext(context);
     GuestChecker.set(isGuest: HiveUtils.isGuest());
     FetchSystemSettingsCubit settings =
-        context.read<FetchSystemSettingsCubit>();
+    context.read<FetchSystemSettingsCubit>();
     if (!const bool.fromEnvironment("force-disable-demo-mode",
         defaultValue: false)) {
       Constant.isDemoModeOn =
@@ -161,9 +164,9 @@ class MainActivityState extends State<MainActivity>
 
     ///This will check if location is set or not , If it is not set it will show popup dialoge so you can set for better result
     if (GuestChecker.value == false) {
-   //   locationSetCheck();
+      //   locationSetCheck();
     }
-  //print("1");
+    //print("1");
 //Initializing rive animations
     initRiveAddButtonAnimation();
 
@@ -171,8 +174,8 @@ class MainActivityState extends State<MainActivity>
     initPageController();
     context.read<FetchOutdoorFacilityListCubit>().fetch();
     context.read<CompanyCubit>().fetchCompany(
-          context,
-        ); //getCompanyData @ Start [specially for contact number]
+      context,
+    ); //getCompanyData @ Start [specially for contact number]
   }
 
   void addHistory(int index) {
@@ -250,7 +253,7 @@ class MainActivityState extends State<MainActivity>
         HiveUtils.getUserDetails().email == "") {
       Future.delayed(
         const Duration(milliseconds: 100),
-        () {
+            () {
           Navigator.pushReplacementNamed(context, Routes.completeProfile,
               arguments: {"from": "login"});
         },
@@ -288,7 +291,7 @@ class MainActivityState extends State<MainActivity>
 
       Future.delayed(
         Duration.zero,
-        () {
+            () {
           if (forceUpdate == "1") {
             ///This is force update
             UiUtils.showBlurredDialoge(context,
@@ -362,7 +365,7 @@ class MainActivityState extends State<MainActivity>
         !HiveUtils.isLocationFilled()) {
       Future.delayed(
         Duration.zero,
-        () {
+            () {
           UiUtils.showBlurredDialoge(
             context,
             dialoge: BlurredDialogBox(
@@ -383,7 +386,7 @@ class MainActivityState extends State<MainActivity>
                       children: [
                         Checkbox(
                           fillColor: MaterialStateProperty.resolveWith(
-                            (Set<MaterialState> states) {
+                                (Set<MaterialState> states) {
                               if (states.contains(MaterialState.selected)) {
                                 return context.color.tertiaryColor;
                               } else {
@@ -488,10 +491,11 @@ class MainActivityState extends State<MainActivity>
   }
 
   late List<Widget> pages = [
-    HomeScreen(from: widget.from),
-  //  const ChatListScreen(),
+    // HomeScreen(from: widget.from),
+    //  const ChatListScreen(),
+    const PropertiesScreen(),
     const Text(""),
-   // const PropertiesScreen(),
+    // const PropertiesScreen(),
     const ProfileScreen(),
   ];
 
@@ -529,7 +533,7 @@ class MainActivityState extends State<MainActivity>
         child: Scaffold(
           backgroundColor: context.color.primaryColor,
           bottomNavigationBar:
-              Constant.maintenanceMode == "1" ? null : bottomBar(),
+          Constant.maintenanceMode == "1" ? null : bottomBar(),
           body: Stack(
             children: <Widget>[
               PageView(
@@ -592,7 +596,7 @@ class MainActivityState extends State<MainActivity>
                                         width: 7.rw(context),
                                       ),
                                       Text(UiUtils.getTranslatedLabel(
-                                              context, "forRent"))
+                                          context, "forRent"))
                                           .color(context.color.buttonColor),
                                     ],
                                   )),
@@ -648,7 +652,7 @@ class MainActivityState extends State<MainActivity>
                                       width: 7.rw(context),
                                     ),
                                     Text(UiUtils.getTranslatedLabel(
-                                            context, "forSell"))
+                                        context, "forSell"))
                                         .color(context.color.buttonColor),
                                   ],
                                 ),
@@ -704,7 +708,7 @@ class MainActivityState extends State<MainActivity>
           currtab = index;
           pageCntrlr.jumpToPage(currtab);
           setState(
-            () {},
+                () {},
           );
         },
       );
@@ -761,8 +765,8 @@ class MainActivityState extends State<MainActivity>
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
-              buildBottomNavigationbarItem(0, AppIcons.home,
-                  UiUtils.getTranslatedLabel(context, "homeTab")),
+              // buildBottomNavigationbarItem(0, AppIcons.home,
+              //     UiUtils.getTranslatedLabel(context, "homeTab")),
               // buildBottomNavigationbarItem(1, AppIcons.chat,
               //     UiUtils.getTranslatedLabel(context, "chat")),
               // const SizedBox(
@@ -773,35 +777,35 @@ class MainActivityState extends State<MainActivity>
               //     artboard: "Add",
               //   ),
               // ),
+              buildBottomNavigationbarItem(0, AppIcons.properties,
+                  UiUtils.getTranslatedLabel(context, "properties")),
+              Transform(
+                transform: Matrix4.identity()..translate(0.toDouble(), -20),
+                child: GestureDetector(
+                  onTap: () async {
+                    if (isReverse?.value == true) {
+                      isReverse?.value = false;
+                      showSellRentButton = true;
+                      _forRentController.forward();
+                      _forSellAnimationController.forward();
+                    } else {
+                      showSellRentButton = false;
+                      isReverse?.value = true;
+                      _forRentController.reverse();
+                      _forSellAnimationController.reverse();
+                    }
+                    // setState(() {});
+                  },
+                  child: SizedBox(
+                      width: 60.rw(context),
+                      height: 66,
+                      child: artboard == null
+                          ? Container()
+                          : Rive(artboard: artboard!)),
+                ),
+              ),
 
-              // Transform(
-              //   transform: Matrix4.identity()..translate(0.toDouble(), -20),
-              //   child: GestureDetector(
-              //     onTap: () async {
-              //       if (isReverse?.value == true) {
-              //         isReverse?.value = false;
-              //         showSellRentButton = true;
-              //         _forRentController.forward();
-              //         _forSellAnimationController.forward();
-              //       } else {
-              //         showSellRentButton = false;
-              //         isReverse?.value = true;
-              //         _forRentController.reverse();
-              //         _forSellAnimationController.reverse();
-              //       }
-              //       // setState(() {});
-              //     },
-              //     child: SizedBox(
-              //         width: 60.rw(context),
-              //         height: 66,
-              //         child: artboard == null
-              //             ? Container()
-              //             : Rive(artboard: artboard!)),
-              //   ),
-              // ),
 
-              // buildBottomNavigationbarItem(3, AppIcons.properties,
-              //     UiUtils.getTranslatedLabel(context, "properties")),
               buildBottomNavigationbarItem(4, AppIcons.profile,
                   UiUtils.getTranslatedLabel(context, "profileTab"))
             ]),
@@ -810,10 +814,10 @@ class MainActivityState extends State<MainActivity>
   }
 
   Widget buildBottomNavigationbarItem(
-    int index,
-    String svgImage,
-    String title,
-  ) {
+      int index,
+      String svgImage,
+      String title,
+      ) {
     return Expanded(
       child: Material(
         type: MaterialType.transparency,

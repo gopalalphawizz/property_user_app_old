@@ -19,7 +19,7 @@ class Constant {
   static String baseUrl = AppSettings.baseUrl;
 
   //Do not add anything here
-  static String googlePlaceAPIkey = "";
+  static String googlePlaceAPIkey = "AIzaSyCKLIBoAca5ptn9A_1UCHNNrtzI81w2KRk";
 
   ///admob
   static bool isAdmobAdsEnabled = false;

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:ebroker/utils/api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../data/cubits/favorite/add_to_favorite_cubit.dart';
@@ -42,7 +43,9 @@ class _SellRentScreenState extends State<SellRentScreen>
     super.initState();
     controller = widget.controller..addListener(pageScrollListener);
     context.read<FetchMyPropertiesCubit>().fetchMyProperties(type: widget.type);
+  //  getType();
   }
+
 
   void pageScrollListener() {
     if (controller.isEndReached()) {
@@ -168,6 +171,7 @@ class _SellRentScreenState extends State<SellRentScreen>
                   child: BlocProvider(
                     create: (context) => AddToFavoriteCubitCubit(),
                     child: PropertyHorizontalCard(
+
                       property: property,
 
                       statusButton: StatusButton(

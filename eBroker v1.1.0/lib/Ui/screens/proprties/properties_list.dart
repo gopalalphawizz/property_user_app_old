@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:ebroker/Ui/screens/widgets/Erros/no_internet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../../app/routes.dart';
 import '../../../data/cubits/property/fetch_property_from_category_cubit.dart';
@@ -46,13 +45,11 @@ class PropertiesListState extends State<PropertiesList> {
   late ScrollController controller;
   List<PropertyModel> propertylist = [];
   int adPosition = 9;
-  InterstitialAdManager interstitialAdManager = InterstitialAdManager();
   @override
   void initState() {
     super.initState();
     searchbody = {};
-    loadAd();
-    interstitialAdManager.load();
+    // loadAd();
     Constant.propertyFilter = null;
     controller = ScrollController()..addListener(_loadMore);
     context.read<FetchPropertyFromCategoryCubit>().fetchPropertyFromCategory(
@@ -69,29 +66,28 @@ class PropertiesListState extends State<PropertiesList> {
     });
   }
 
-  BannerAd? _bannerAd;
   bool _isLoaded = false;
-  void loadAd() {
-    _bannerAd = BannerAd(
-      adUnitId: Constant.admobBannerAndroid,
-      request: const AdRequest(),
-      size: AdSize.largeBanner,
-      listener: BannerAdListener(
-        // Called when an ad is successfully received.
-        onAdLoaded: (ad) {
-          debugPrint('$ad loaded.');
-          setState(() {
-            _isLoaded = true;
-          });
-        },
-        // Called when an ad request failed.
-        onAdFailedToLoad: (ad, err) {
-          // Dispose the ad here to free resources.
-          ad.dispose();
-        },
-      ),
-    )..load();
-  }
+  // void loadAd() {
+  //   _bannerAd = BannerAd(
+  //     adUnitId: Constant.admobBannerAndroid,
+  //     request: const AdRequest(),
+  //     size: AdSize.largeBanner,
+  //     listener: BannerAdListener(
+  //       // Called when an ad is successfully received.
+  //       onAdLoaded: (ad) {
+  //         debugPrint('$ad loaded.');
+  //         setState(() {
+  //           _isLoaded = true;
+  //         });
+  //       },
+  //       // Called when an ad request failed.
+  //       onAdFailedToLoad: (ad, err) {
+  //         // Dispose the ad here to free resources.
+  //         ad.dispose();
+  //       },
+  //     ),
+  //   )..load();
+  // }
 
   @override
   void dispose() {
@@ -138,7 +134,6 @@ class PropertiesListState extends State<PropertiesList> {
   Widget bodyWidget() {
     return WillPopScope(
       onWillPop: () async {
-        await interstitialAdManager.show();
         Constant.propertyFilter = null;
         return true;
       },
@@ -150,11 +145,11 @@ class PropertiesListState extends State<PropertiesList> {
                   ? widget.categoryName
                   : selectedcategoryName,
               actions: [
-                filterOptionsBtn(),
+               // filterOptionsBtn(),
               ]),
-          bottomNavigationBar: const BottomAppBar(
-            child: BannerAdWidget(bannerSize: AdSize.banner),
-          ),
+          // bottomNavigationBar: const BottomAppBar(
+          //   // child: BannerAdWidget(bannerSize: AdSize.banner),
+          // ),
           body: BlocBuilder<FetchPropertyFromCategoryCubit,
               FetchPropertyFromCategoryState>(builder: (context, state) {
             if (state is FetchPropertyFromCategoryInProgress) {
@@ -174,7 +169,7 @@ class PropertiesListState extends State<PropertiesList> {
                 return error;
               }
               return Center(
-                child: Text(state.errorMessage),
+                child: Text(state.errorMessage.toString()),
               );
             }
             if (state is FetchPropertyFromCategorySuccess) {
@@ -206,11 +201,7 @@ class PropertiesListState extends State<PropertiesList> {
                       physics: const BouncingScrollPhysics(),
                       separatorBuilder: (context, index) {
                         if ((index + 1) % adPosition == 0) {
-                          return (_bannerAd == null)
-                              ? Container()
-                              : Builder(builder: (context) {
-                                  return BannerAdWidget();
-                                });
+                          return Container();
                         }
 
                         return const SizedBox.shrink();

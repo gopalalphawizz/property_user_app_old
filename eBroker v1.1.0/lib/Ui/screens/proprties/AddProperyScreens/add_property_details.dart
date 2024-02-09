@@ -1,15 +1,24 @@
+import 'dart:collection';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:ebroker/Ui/screens/proprties/AddProperyScreens/property_success.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:ebroker/utils/hive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart' as h;
 
 import '../../../../app/routes.dart';
 import '../../../../data/Repositories/property_repository.dart';
+import '../../../../data/cubits/property/create_property_cubit.dart';
+import '../../../../data/helper/widgets.dart';
 import '../../../../data/model/category.dart';
 import '../../../../data/model/property_model.dart';
 import '../../../../utils/AppIcon.dart';
@@ -20,9 +29,12 @@ import '../../../../utils/imagePicker.dart';
 import '../../../../utils/responsiveSize.dart';
 import '../../../../utils/ui_utils.dart';
 import '../../widgets/AnimatedRoutes/blur_page_route.dart';
+import '../../widgets/AnimatedRoutes/scale_up_route.dart';
+import '../../widgets/DynamicField/dynamic_field.dart';
 import '../../widgets/blurred_dialoge_box.dart';
 import '../../widgets/custom_text_form_field.dart';
 import '../../widgets/panaroma_image_view.dart';
+import '../Property tab/sell_rent_screen.dart';
 
 class AddPropertyDetails extends StatefulWidget {
   final Map? properyDetails;
@@ -72,6 +84,9 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
       TextEditingController();
 
   Map propertyData = {};
+  List galleryImage = [];
+  File? titleImage;
+  File? t360degImage;
   final PickImage _pickTitleImage = PickImage();
   final PickImage _propertisImagePicker = PickImage();
   final PickImage _pick360deg = PickImage();
@@ -121,20 +136,22 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
   }
 
   void _onTapChooseLocation(FormFieldState state) async {
-    FocusManager.instance.primaryFocus?.unfocus();
-    Map? placeMark =
-        await Navigator.pushNamed(context, Routes.chooseLocaitonMap) as Map?;
-    var latlng = placeMark?['latlng'] as LatLng?;
-    Placemark? place = placeMark?['place'] as Placemark?;
+    // FocusManager.instance.primaryFocus?.unfocus();
+    // Map? placeMark =
+    //     await Navigator.pushNamed(context, Routes.chooseLocaitonMap) as Map?;
+    // var latlng = placeMark?['latlng'] as LatLng?;
+   // Placemark? place = placeMark?['place'] as Placemark?;
+  Position position=   await Geolocator.getCurrentPosition();
+  List<Placemark> placeMark = await placemarkFromCoordinates(position.latitude, position.longitude);
     log("place $placeMark ");
-    if (latlng != null && place != null) {
-      _latitudeController.text = latlng.latitude.toString();
-      _longitudeController.text = latlng.longitude.toString();
-      _cityNameController.text = place.locality ?? "";
-      _countryNameController.text = place.country ?? "";
-      _stateNameController.text = place.administrativeArea ?? "";
+    if (position.latitude != null && placeMark != null) {
+      _latitudeController.text = position.latitude.toString();
+      _longitudeController.text = position.longitude.toString();
+      _cityNameController.text = placeMark[0].locality ?? "";
+      _countryNameController.text =  placeMark[0].country ?? "";
+      _stateNameController.text =  placeMark[0].administrativeArea ?? "";
       _addressController.text = "";
-      _addressController.text = getAddress(place);
+      _addressController.text = getAddress(placeMark[0]);
       // log(City().get());
       state.didChange(true);
     } else {
@@ -160,8 +177,30 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
       throw Exception("E $st");
     }
   }
+  Map<String, dynamic> assembleDynamicFieldsParameters() {
+    Map<String, dynamic> parameters = {};
+
+    Map fieldsData = AbstractField.fieldsData;
+    log("ALL PARAMTERS ARE  $fieldsData");
+    for (var i = 0; i < fieldsData.entries.length; i++) {
+      MapEntry element = fieldsData.entries.elementAt(i);
+      var value = element.value;
+      if (value is LinkedHashMap) {
+        value = (value).toString();
+      }
+      if (value == null) {
+        continue;
+      }
+      parameters.addAll({
+        "parameters[$i][parameter_id]": element.key,
+        "parameters[$i][value]": value
+      });
+    }
+    return parameters;
+  }
 
   void _onTapContinue() async {
+
     File? titleImage;
     File? v360Image;
     if (_pickTitleImage.pickedFile != null) {
@@ -180,6 +219,7 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState?.save();
+
       bool check = _checkIfLocationIsChosen();
       if (check == false) {
         Future.delayed(
@@ -233,7 +273,7 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
       }).toList()
         ..removeWhere((element) => element == null);
 
-      log(list.toString());
+    //  log(list.toString()+"++++++++++++++++");
       // return;
 
       propertyData.addAll({
@@ -245,7 +285,7 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
         "latitude": _latitudeController.text,
         "longitude": _longitudeController.text,
         "address": _addressController.text,
-        "client_address": _clientAddressController.text,
+        // "client_address": _clientAddressController.text,
         "price": _priceController.text,
         "title_image": titleImage,
         "gallery_images": list,
@@ -258,7 +298,8 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
         "property_type": widget.properyDetails == null
             ? (Constant.addProperty['propertyType'] as PropertyType).value
             : widget.properyDetails?['propType'],
-        "package_id": Constant.subscriptionPackageId,
+        "package_id": "1",
+        //Constant.subscriptionPackageId,
         "threeD_image": v360Image,
         "video_link": _videoLinkController.text,
         if ((widget.properyDetails == null
@@ -270,6 +311,7 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
             "rent")
           "rentduration": selectedRentType,
       });
+     // log(propertyData.toString()+"++++++++++++++++");
 
       if (widget.properyDetails?.containsKey("assign_facilities") ?? false) {
         propertyData?["assign_facilities"] =
@@ -282,30 +324,87 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
 
       Future.delayed(
         Duration.zero,
-        () {
+        () async {
           _pickTitleImage.pauseSubscription();
 
-          Navigator.pushNamed(
-            context,
-            Routes.setPropertyParametersScreen,
-            arguments: {
-              "details": propertyData,
-              "isUpdate": (widget.properyDetails != null)
+          propertyData!.addAll(assembleDynamicFieldsParameters());
+          galleryImage = propertyData!['gallery_images'];
+
+          List gallery = [];
+          await Future.forEach(
+            galleryImage,
+                (dynamic item) async {
+              var multipartFile = await MultipartFile.fromFile(item.path);
+              if (!multipartFile.isFinalized) {
+                gallery.add(multipartFile);
+              }
             },
-          ).then((value) {
-            _pickTitleImage.resumeSubscription();
-          });
+          );
+          log(gallery.toString()+"++++++++++++++++"); log(galleryImage.toString()+"++++++++++++++++");
+
+          propertyData!['gallery_images'] = gallery;
+
+          if (titleImage != null) {
+            ///Multipart image of title image
+            final mimeType = lookupMimeType((titleImage as File).path);
+            var extension = mimeType!.split("/");
+            propertyData!['title_image'] = await MultipartFile.fromFile(
+                (titleImage as File).path,
+                contentType: h.MediaType('image', extension[1]),
+                filename: (titleImage as File).path.split("/").last);
+          }
+
+
+          if (t360degImage != null) {
+            final mimeType = lookupMimeType(t360degImage!.path);
+            var extension = mimeType!.split("/");
+
+            propertyData!['threeD_image'] = await MultipartFile.fromFile(
+                t360degImage?.path ?? "",
+                contentType: h.MediaType('image', extension[1]),
+                filename: t360degImage?.path.split("/").last);
+          }
+
+          Future.delayed(
+            Duration.zero,
+                () {
+
+
+
+
+              propertyData?['isUpdate'] =(widget.properyDetails != null);
+
+              Map<String, dynamic>? parameters = Map.from(propertyData);
+
+              ///adding facility data to api payload
+              parameters
+                ?..remove("assign_facilities")
+                ..remove("isUpdate");
+              context
+                  .read<CreatePropertyCubit>()
+                  .create(parameters: parameters??{});
+          // Navigator.pushNamed(
+          //   context,
+          //   Routes.setPropertyParametersScreen,
+          //   arguments: {
+          //     "details": propertyData,
+          //     "isUpdate": (widget.properyDetails != null)
+          //   },
+          // ).then((value) {
+          //   _pickTitleImage.resumeSubscription();
+          // });
         },
       );
-    }
+    });
   }
-
+  }
   bool _checkIfLocationIsChosen() {
     if (_cityNameController.text == "" ||
         _stateNameController.text == "" ||
         _countryNameController.text == "" ||
         _latitudeController.text == "" ||
-        _longitudeController.text == "") {
+        _longitudeController.text == ""
+    ) {
       return false;
     }
     return true;
@@ -342,7 +441,11 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
               onPressed: _onTapContinue,
               height: 48.rh(context),
               fontSize: context.font.large,
-              buttonTitle: UiUtils.getTranslatedLabel(context, "next")),
+              buttonTitle:  (widget.properyDetails != null)
+              ? UiUtils.getTranslatedLabel(context, "updateProperty")
+                : UiUtils.getTranslatedLabel(context, "ddPropertyLbl"),
+
+          ),
         ),
       ),
       appBar: UiUtils.buildAppBar(
@@ -351,7 +454,7 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
             ? UiUtils.getTranslatedLabel(context, "ddPropertyLbl")
             : UiUtils.getTranslatedLabel(context, "updateProperty"),
         actions: const [
-          Text("2/4"),
+          Text("2/2"),
           SizedBox(
             width: 14,
           ),
@@ -360,421 +463,471 @@ class _AddPropertyDetailsState extends State<AddPropertyDetails> {
       ),
       body: Form(
         key: _formKey,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(UiUtils.getTranslatedLabel(context, "propertyNameLbl")),
-                SizedBox(
-                  height: 15.rh(context),
-                ),
-                CustomTextFormField(
-                  controller: _propertyNameController,
-                  validator: CustomTextFieldValidator.nullCheck,
-                  action: TextInputAction.next,
-                  hintText:
-                      UiUtils.getTranslatedLabel(context, "propertyNameLbl"),
-                ),
-                SizedBox(
-                  height: 15.rh(context),
-                ),
-                Text(UiUtils.getTranslatedLabel(context, "descriptionLbl")),
-                SizedBox(
-                  height: 15.rh(context),
-                ),
-                CustomTextFormField(
-                  action: TextInputAction.next,
-                  controller: _descriptionController,
-                  validator: CustomTextFieldValidator.nullCheck,
-                  hintText:
-                      UiUtils.getTranslatedLabel(context, "writeSomething"),
-                  maxLine: 100,
-                  minLine: 6,
-                ),
-                SizedBox(
-                  height: 15.rh(context),
-                ),
-                SizedBox(
-                  height: 35.rh(context),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                          flex: 3,
-                          child: Text(UiUtils.getTranslatedLabel(
-                              context, "addressLbl"))),
-                      // const Spacer(),
-                      Expanded(
-                        flex: 3,
-                        child: ChooseLocationFormField(
-                          initialValue: false,
-                          validator: (bool? value) {
-                            //Check if it has already data so we will not validate it.
-                            if ((widget.properyDetails != null)) {
-                              return null;
-                            }
+        child: BlocListener<CreatePropertyCubit, CreatePropertyState>(
+          listener: (context, state) {
+            if (state is CreatePropertyInProgress) {
+              Widgets.showLoader(context);
+            }
 
-                            if (value == true) {
-                              return null;
-                            } else {
-                              return "Select location";
-                            }
-                          },
-                          build: (state) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                  // color: context.color.teritoryColor,
-                                  border: Border.all(
-                                      width: 1.5,
-                                      color: state.hasError
-                                          ? Colors.red
-                                          : Colors.transparent),
-                                  borderRadius: BorderRadius.circular(9)),
-                              child: MaterialButton(
-                                  height: 30,
-                                  onPressed: () {
-                                    _onTapChooseLocation.call(state);
-                                  },
-                                  child: FittedBox(
-                                    fit: BoxFit.fitWidth,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        UiUtils.getSvg(AppIcons.location,
-                                            color:
-                                                context.color.textLightColor),
-                                        const SizedBox(
-                                          width: 3,
-                                        ),
-                                        Text(
-                                          UiUtils.getTranslatedLabel(
-                                              context, "chooseLocation"),
-                                        )
-                                            .size(context.font.normal)
-                                            .color(context.color.tertiaryColor)
-                                            .underline(),
-                                      ],
-                                    ),
-                                  )),
+            if (state is CreatePropertyFailure) {
+              Widgets.hideLoder(context);
+              HelperUtils.showSnackBarMessage(context, state.errorMessage);
+            }
+            if (state is CreatePropertySuccess) {
+              Widgets.hideLoder(context);
+              if ((widget.properyDetails != null) == false) {
+                ref[propertyType ?? "sell"]
+                    ?.fetchMyProperties(type: propertyType ?? "sell");
+                Future.delayed(
+                  const Duration(milliseconds: 260),
+                      () {
+                    Navigator.pushReplacement(
+                        context,
+                        ScaleUpRouter(
+                          builder: (context) {
+                            return PropertyAddSuccess(
+                              model: state.propertyModel!,
                             );
                           },
-                        ),
-                      )
-                    ],
+                          current: widget,
+                        ));
+                  },
+                );
+              } else {
+                context.read<PropertyEditCubit>().add(state.propertyModel!);
+                context
+                    .read<FetchMyPropertiesCubit>()
+                    .update(state.propertyModel!);
+                cubitReference?.update(state.propertyModel!);
+                HelperUtils.showSnackBarMessage(context,
+                    UiUtils.getTranslatedLabel(context, "propertyUpdated"),
+                    type: MessageType.success, onClose: () {
+                      Navigator.of(context)
+                        ..pop()
+                        ..pop();
+                        // ..pop();
+                      //  ..pop();
+                    });
+              }
+            }
+          },
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(UiUtils.getTranslatedLabel(context, "propertyNameLbl")),
+                  SizedBox(
+                    height: 15.rh(context),
                   ),
-                ),
-                SizedBox(
-                  height: 15.rh(context),
-                ),
-                CustomTextFormField(
-                  action: TextInputAction.next,
-                  controller: _cityNameController,
-                  isReadOnly: false,
-                  validator: CustomTextFieldValidator.nullCheck,
-                  hintText: UiUtils.getTranslatedLabel(context, "city"),
-                ),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                CustomTextFormField(
-                  action: TextInputAction.next,
-                  controller: _stateNameController,
-                  isReadOnly: false,
-                  validator: CustomTextFieldValidator.nullCheck,
-                  hintText: UiUtils.getTranslatedLabel(context, "state"),
-                ),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                CustomTextFormField(
-                  action: TextInputAction.next,
-                  controller: _countryNameController,
-                  isReadOnly: false,
-                  validator: CustomTextFieldValidator.nullCheck,
-                  hintText: UiUtils.getTranslatedLabel(context, "country"),
-                ),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                CustomTextFormField(
-                  action: TextInputAction.next,
-                  controller: _addressController,
-                  hintText: UiUtils.getTranslatedLabel(context, "addressLbl"),
-                  maxLine: 100,
-                  validator: CustomTextFieldValidator.nullCheck,
-                  minLine: 4,
-                ),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    TextButton(
-                        onPressed: () {
-                          _clientAddressController.clear();
-                          _clientAddressController.text =
-                              HiveUtils.getUserDetails().address ?? "";
-                        },
-                        style: ButtonStyle(
-                            overlayColor: MaterialStatePropertyAll(
-                                context.color.tertiaryColor.withOpacity(0.3))),
-                        child: Text("useYourLocation".translate(context))
-                            .underline()
-                            .color(context.color.tertiaryColor)),
-                    CustomTextFormField(
-                      action: TextInputAction.next,
-                      controller: _clientAddressController,
-                      validator: CustomTextFieldValidator.nullCheck,
-                      hintText: UiUtils.getTranslatedLabel(
-                          context, "clientaddressLbl"),
-                      maxLine: 100,
-                      minLine: 4,
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                if ((widget.properyDetails == null
-                            ? (Constant.addProperty['propertyType']
-                                    as PropertyType)
-                                .name
-                            : widget.properyDetails?['propType'])
-                        .toString()
-                        .toLowerCase() ==
-                    "rent") ...[
-                  Text(UiUtils.getTranslatedLabel(context, "rentPrice")),
-                ] else ...[
-                  Text(UiUtils.getTranslatedLabel(context, "price")),
-                ],
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomTextFormField(
-                        action: TextInputAction.next,
-                        prefix: Text("${Constant.currencySymbol} "),
-                        controller: _priceController,
-                        formaters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d+\.?\d*')),
-                        ],
-                        isReadOnly: false,
-                        keyboard: TextInputType.number,
-                        validator: CustomTextFieldValidator.nullCheck,
-                        hintText: "00",
-                      ),
-                    ),
-                    if ((widget.properyDetails == null
-                                ? (Constant.addProperty['propertyType']
-                                        as PropertyType)
-                                    .name
-                                : widget.properyDetails?['propType'])
-                            .toString()
-                            .toLowerCase() ==
-                        "rent") ...[
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                            color: context.color.secondaryColor,
-                            border: Border.all(
-                                color: context.color.borderColor, width: 1.5),
-                            borderRadius: BorderRadius.circular(10)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(7.0),
-                          child: DropdownButton<String>(
-                            value: selectedRentType,
-                            dropdownColor: context.color.primaryColor,
-                            underline: const SizedBox.shrink(),
-                            items: [
-                              DropdownMenuItem(
-                                value: "Daily",
-                                child: Text(
-                                  "Daily".translate(context),
-                                ),
-                              ),
-                              DropdownMenuItem(
-                                value: "Monthly",
-                                child: Text("Monthly".translate(context)),
-                              ),
-                              DropdownMenuItem(
-                                value: "Quarterly",
-                                child: Text("Quarterly".translate(context)),
-                              ),
-                              DropdownMenuItem(
-                                value: "Yearly",
-                                child: Text("Yearly".translate(context)),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              selectedRentType = value ?? "";
-                              setState(() {});
+                  CustomTextFormField(
+                    controller: _propertyNameController,
+                    validator: CustomTextFieldValidator.nullCheck,
+                    action: TextInputAction.next,
+                    hintText:
+                        UiUtils.getTranslatedLabel(context, "propertyNameLbl"),
+                  ),
+                  SizedBox(
+                    height: 15.rh(context),
+                  ),
+                  Text(UiUtils.getTranslatedLabel(context, "descriptionLbl")),
+                  SizedBox(
+                    height: 15.rh(context),
+                  ),
+                  CustomTextFormField(
+                    action: TextInputAction.next,
+                    controller: _descriptionController,
+                    validator: CustomTextFieldValidator.nullCheck,
+                    hintText:
+                        UiUtils.getTranslatedLabel(context, "writeSomething"),
+                    maxLine: 100,
+                    minLine: 6,
+                  ),
+                  SizedBox(
+                    height: 15.rh(context),
+                  ),
+                  SizedBox(
+                    height: 35.rh(context),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                            flex: 3,
+                            child: Text(UiUtils.getTranslatedLabel(
+                                context, "addressLbl"))),
+                        // const Spacer(),
+                        Expanded(
+                          flex: 3,
+                          child: ChooseLocationFormField(
+                            initialValue: false,
+                            validator: (bool? value) {
+                              //Check if it has already data so we will not validate it.
+                              if ((widget.properyDetails != null)) {
+                                return null;
+                              }
+
+                              if (value == true) {
+                                return null;
+                              } else {
+                                return "Select location";
+                              }
+                            },
+                            build: (state) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                    // color: context.color.teritoryColor,
+                                    border: Border.all(
+                                        width: 1.5,
+                                        color: state.hasError
+                                            ? Colors.red
+                                            : Colors.transparent),
+                                    borderRadius: BorderRadius.circular(9)),
+                                child: MaterialButton(
+                                    height: 30,
+                                    onPressed: () {
+
+                                     _onTapChooseLocation.call(state);
+                                    },
+                                    child: FittedBox(
+                                      fit: BoxFit.fitWidth,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          UiUtils.getSvg(AppIcons.location,
+                                              color:
+                                                  context.color.textLightColor),
+                                          const SizedBox(
+                                            width: 3,
+                                          ),
+                                          Text(
+                                            UiUtils.getTranslatedLabel(
+                                                context, "chooseLocation"),
+                                          )
+                                              .size(context.font.normal)
+                                              .color(context.color.tertiaryColor)
+                                              .underline(),
+                                        ],
+                                      ),
+                                    )),
+                              );
                             },
                           ),
-                        ),
-                      ),
-                    ]
-                  ],
-                ),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                Row(
-                  children: [
-                    Text(UiUtils.getTranslatedLabel(context, "uploadPictures")),
-                    const SizedBox(
-                      width: 3,
-                    ),
-                    Text("maxSize".translate(context))
-                        .italic()
-                        .size(context.font.small),
-                  ],
-                ),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                Wrap(
-                  children: [
-                    if (_pickTitleImage.pickedFile != null) ...[] else ...[],
-                    titleImageListener(),
-                  ],
-                ),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                Text(UiUtils.getTranslatedLabel(context, "otherPictures")),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                propertyImagesListener(),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                Text(UiUtils.getTranslatedLabel(context, "additionals")),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                CustomTextFormField(
-                  // prefix: Text("${Constant.currencySymbol} "),
-                  controller: _videoLinkController,
-                  // isReadOnly: widget.properyDetails != null,
-                  hintText: "http://example.com/video.mp4",
-                ),
-                SizedBox(
-                  height: 10.rh(context),
-                ),
-                DottedBorder(
-                  color: context.color.textLightColor,
-                  borderType: BorderType.RRect,
-                  radius: const Radius.circular(12),
-                  child: GestureDetector(
-                    onTap: () {
-                      _pick360deg.pick(pickMultiple: false);
-                    },
-                    child: Container(
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10)),
-                      alignment: Alignment.center,
-                      height: 48.rh(context),
-                      child: Text(UiUtils.getTranslatedLabel(
-                          context, "add360degPicture")),
+                        )
+                      ],
                     ),
                   ),
-                ),
-                _pick360deg.listenChangesInUI((context, image) {
-                  if (image != null) {
-                    return Stack(
-                      children: [
+                  SizedBox(
+                    height: 15.rh(context),
+                  ),
+                  CustomTextFormField(
+                    action: TextInputAction.next,
+                    controller: _cityNameController,
+                    isReadOnly: false,
+                    validator: CustomTextFieldValidator.nullCheck,
+                    hintText: UiUtils.getTranslatedLabel(context, "city"),
+                  ),
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  CustomTextFormField(
+                    action: TextInputAction.next,
+                    controller: _stateNameController,
+                    isReadOnly: false,
+                    validator: CustomTextFieldValidator.nullCheck,
+                    hintText: UiUtils.getTranslatedLabel(context, "state"),
+                  ),
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  CustomTextFormField(
+                    action: TextInputAction.next,
+                    controller: _countryNameController,
+                    isReadOnly: false,
+                    validator: CustomTextFieldValidator.nullCheck,
+                    hintText: UiUtils.getTranslatedLabel(context, "country"),
+                  ),
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  CustomTextFormField(
+                    action: TextInputAction.next,
+                    controller: _addressController,
+                    hintText: UiUtils.getTranslatedLabel(context, "addressLbl"),
+                    maxLine: 100,
+                    validator: CustomTextFieldValidator.nullCheck,
+                    minLine: 4,
+                  ),
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // TextButton(
+                      //     onPressed: () {
+                      //       _clientAddressController.clear();
+                      //       _clientAddressController.text =
+                      //           HiveUtils.getUserDetails().address ?? "";
+                      //     },
+                      //     style: ButtonStyle(
+                      //         overlayColor: MaterialStatePropertyAll(
+                      //             context.color.tertiaryColor.withOpacity(0.3))),
+                      //     child: Text("useYourLocation".translate(context))
+                      //         .underline()
+                      //         .color(context.color.tertiaryColor)),
+                      // CustomTextFormField(
+                      //   action: TextInputAction.next,
+                      //   controller: _clientAddressController,
+                      //   validator: CustomTextFieldValidator.nullCheck,
+                      //   hintText: UiUtils.getTranslatedLabel(
+                      //       context, "clientaddressLbl"),
+                      //   maxLine: 100,
+                      //   minLine: 4,
+                      // ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  if ((widget.properyDetails == null
+                              ? (Constant.addProperty['propertyType']
+                                      as PropertyType)
+                                  .name
+                              : widget.properyDetails?['propType'])
+                          .toString()
+                          .toLowerCase() ==
+                      "rent") ...[
+                    Text(UiUtils.getTranslatedLabel(context, "rentPrice")),
+                  ] else ...[
+                    Text(UiUtils.getTranslatedLabel(context, "price")),
+                  ],
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextFormField(
+                          action: TextInputAction.next,
+                          prefix: Text("${Constant.currencySymbol} "),
+                          controller: _priceController,
+                          formaters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d+\.?\d*')),
+                          ],
+                          isReadOnly: false,
+                          keyboard: TextInputType.number,
+                          validator: CustomTextFieldValidator.nullCheck,
+                          hintText: "00",
+                        ),
+                      ),
+                      if ((widget.properyDetails == null
+                                  ? (Constant.addProperty['propertyType']
+                                          as PropertyType)
+                                      .name
+                                  : widget.properyDetails?['propType'])
+                              .toString()
+                              .toLowerCase() ==
+                          "rent") ...[
+                        const SizedBox(
+                          width: 5,
+                        ),
                         Container(
-                            width: 100,
-                            height: 100,
-                            margin: const EdgeInsets.all(5),
-                            clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10)),
-                            child: Image.file(
-                              image,
-                              fit: BoxFit.cover,
-                            )),
-                        Positioned.fill(
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(context, BlurredRouter(
-                                builder: (context) {
-                                  return PanaromaImageScreen(
-                                    imageUrl: image.path,
-                                    isFileImage: true,
-                                  );
-                                },
-                              ));
-                            },
-                            child: Container(
-                              width: 100,
-                              margin: const EdgeInsets.all(5),
-                              height: 100,
-                              decoration: BoxDecoration(
-                                  color:
-                                      context.color.tertiaryColor.withOpacity(
-                                    0.68,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10)),
-                              child: FittedBox(
-                                fit: BoxFit.none,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: context.color.secondaryColor,
-                                  ),
-                                  width: 60.rw(context),
-                                  height: 60.rh(context),
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        SizedBox(
-                                            height: 30.rh(context),
-                                            width: 40.rw(context),
-                                            child: UiUtils.getSvg(
-                                                AppIcons.v360Degree,
-                                                color: context
-                                                    .color.textColorDark)),
-                                        Text(UiUtils.getTranslatedLabel(
-                                                context, "view"))
-                                            .color(context.color.textColorDark)
-                                            .size(context.font.small)
-                                            .bold()
-                                      ],
-                                    ),
+                          decoration: BoxDecoration(
+                              color: context.color.secondaryColor,
+                              border: Border.all(
+                                  color: context.color.borderColor, width: 1.5),
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(7.0),
+                            child: DropdownButton<String>(
+                              value: selectedRentType,
+                              dropdownColor: context.color.primaryColor,
+                              underline: const SizedBox.shrink(),
+                              items: [
+                                DropdownMenuItem(
+                                  value: "Daily",
+                                  child: Text(
+                                    "Daily".translate(context),
                                   ),
                                 ),
-                              ),
+                                DropdownMenuItem(
+                                  value: "Monthly",
+                                  child: Text("Monthly".translate(context)),
+                                ),
+                                DropdownMenuItem(
+                                  value: "Quarterly",
+                                  child: Text("Quarterly".translate(context)),
+                                ),
+                                DropdownMenuItem(
+                                  value: "Yearly",
+                                  child: Text("Yearly".translate(context)),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                selectedRentType = value ?? "";
+                                setState(() {});
+                              },
                             ),
                           ),
                         ),
-                      ],
-                    );
-                  }
-
-                  return Container();
-                }),
-                SizedBox(
-                  height: 15.rh(context),
-                ),
-              ],
+                      ]
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  Row(
+                    children: [
+                      Text(UiUtils.getTranslatedLabel(context, "uploadPictures")),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      Text("maxSize".translate(context))
+                          .italic()
+                          .size(context.font.small),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  Wrap(
+                    children: [
+                      if (_pickTitleImage.pickedFile != null) ...[] else ...[],
+                      titleImageListener(),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  Text(UiUtils.getTranslatedLabel(context, "otherPictures")),
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  propertyImagesListener(),
+                  SizedBox(
+                    height: 10.rh(context),
+                  ),
+                  // Text(UiUtils.getTranslatedLabel(context, "additionals")),
+                  // SizedBox(
+                  //   height: 10.rh(context),
+                  // ),
+                  // CustomTextFormField(
+                  //   // prefix: Text("${Constant.currencySymbol} "),
+                  //   controller: _videoLinkController,
+                  //   // isReadOnly: widget.properyDetails != null,
+                  //   hintText: "http://example.com/video.mp4",
+                  // ),
+                  // SizedBox(
+                  //   height: 10.rh(context),
+                  // ),
+                  // DottedBorder(
+                  //   color: context.color.textLightColor,
+                  //   borderType: BorderType.RRect,
+                  //   radius: const Radius.circular(12),
+                  //   child: GestureDetector(
+                  //     onTap: () {
+                  //       _pick360deg.pick(pickMultiple: false);
+                  //     },
+                  //     child: Container(
+                  //       clipBehavior: Clip.antiAlias,
+                  //       decoration: BoxDecoration(
+                  //           borderRadius: BorderRadius.circular(10)),
+                  //       alignment: Alignment.center,
+                  //       height: 48.rh(context),
+                  //       child: Text(UiUtils.getTranslatedLabel(
+                  //           context, "add360degPicture")),
+                  //     ),
+                  //   ),
+                  // ),
+                  // _pick360deg.listenChangesInUI((context, image) {
+                  //   if (image != null) {
+                  //     return Stack(
+                  //       children: [
+                  //         Container(
+                  //             width: 100,
+                  //             height: 100,
+                  //             margin: const EdgeInsets.all(5),
+                  //             clipBehavior: Clip.antiAlias,
+                  //             decoration: BoxDecoration(
+                  //                 borderRadius: BorderRadius.circular(10)),
+                  //             child: Image.file(
+                  //               image,
+                  //               fit: BoxFit.cover,
+                  //             )),
+                  //         Positioned.fill(
+                  //           child: GestureDetector(
+                  //             onTap: () {
+                  //               Navigator.push(context, BlurredRouter(
+                  //                 builder: (context) {
+                  //                   return PanaromaImageScreen(
+                  //                     imageUrl: image.path,
+                  //                     isFileImage: true,
+                  //                   );
+                  //                 },
+                  //               ));
+                  //             },
+                  //             child: Container(
+                  //               width: 100,
+                  //               margin: const EdgeInsets.all(5),
+                  //               height: 100,
+                  //               decoration: BoxDecoration(
+                  //                   color:
+                  //                       context.color.tertiaryColor.withOpacity(
+                  //                     0.68,
+                  //                   ),
+                  //                   borderRadius: BorderRadius.circular(10)),
+                  //               child: FittedBox(
+                  //                 fit: BoxFit.none,
+                  //                 child: Container(
+                  //                   decoration: BoxDecoration(
+                  //                     shape: BoxShape.circle,
+                  //                     color: context.color.secondaryColor,
+                  //                   ),
+                  //                   width: 60.rw(context),
+                  //                   height: 60.rh(context),
+                  //                   child: Center(
+                  //                     child: Column(
+                  //                       mainAxisSize: MainAxisSize.min,
+                  //                       children: [
+                  //                         SizedBox(
+                  //                             height: 30.rh(context),
+                  //                             width: 40.rw(context),
+                  //                             child: UiUtils.getSvg(
+                  //                                 AppIcons.v360Degree,
+                  //                                 color: context
+                  //                                     .color.textColorDark)),
+                  //                         Text(UiUtils.getTranslatedLabel(
+                  //                                 context, "view"))
+                  //                             .color(context.color.textColorDark)
+                  //                             .size(context.font.small)
+                  //                             .bold()
+                  //                       ],
+                  //                     ),
+                  //                   ),
+                  //                 ),
+                  //               ),
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     );
+                  //   }
+                  //
+                  //   return Container();
+                  // }),
+                  SizedBox(
+                    height: 15.rh(context),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

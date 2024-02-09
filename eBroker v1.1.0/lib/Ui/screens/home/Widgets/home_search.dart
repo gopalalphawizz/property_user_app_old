@@ -33,7 +33,7 @@ class HomeSearchField extends StatelessWidget {
             child: AbsorbPointer(
               absorbing: true,
               child: Container(
-                  width: 285.rw(
+                  width: 330.rw(
                     context,
                   ),
                   height: 50.rh(
@@ -65,28 +65,28 @@ class HomeSearchField extends StatelessWidget {
                       })),
             ),
           ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, Routes.propertyMapScreen);
-            },
-            child: Container(
-              width: 50.rw(context),
-              height: 50.rh(context),
-              decoration: BoxDecoration(
-                border:
-                    Border.all(width: 1.5, color: context.color.borderColor),
-                color: context.color.secondaryColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: UiUtils.getSvg(
-                  AppIcons.propertyMap,
-                  color: context.color.tertiaryColor,
-                ),
-              ),
-            ),
-          ),
+          // const Spacer(),
+          // GestureDetector(
+          //   onTap: () {
+          //     Navigator.pushNamed(context, Routes.propertyMapScreen);
+          //   },
+          //   child: Container(
+          //     width: 50.rw(context),
+          //     height: 50.rh(context),
+          //     decoration: BoxDecoration(
+          //       border:
+          //           Border.all(width: 1.5, color: context.color.borderColor),
+          //       color: context.color.secondaryColor,
+          //       borderRadius: BorderRadius.circular(10),
+          //     ),
+          //     child: Center(
+          //       child: UiUtils.getSvg(
+          //         AppIcons.propertyMap,
+          //         color: context.color.tertiaryColor,
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

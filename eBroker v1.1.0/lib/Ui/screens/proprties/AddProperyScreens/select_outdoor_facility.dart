@@ -142,7 +142,8 @@ class _SelectOutdoorFacilityState extends State<SelectOutdoorFacility> {
               ),
             ],
             title: "selectNearestPlaces".translate(context)),
-        bottomNavigationBar: BottomAppBar(
+        bottomNavigationBar:
+        BottomAppBar(
           child: GestureDetector(
             onTap: () {
               distanceFieldList.forEach((element, v) {

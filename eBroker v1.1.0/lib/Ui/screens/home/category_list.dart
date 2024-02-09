@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
-
 import '../../../app/routes.dart';
 import '../../../data/cubits/category/fetch_category_cubit.dart';
 import '../../../data/model/category.dart';
@@ -52,9 +50,9 @@ class _CategoryListState extends State<CategoryList>
         showBackButton: true,
         title: UiUtils.getTranslatedLabel(context, "categoriesLbl"),
       ),
-      bottomNavigationBar: const BottomAppBar(
-        child: BannerAdWidget(bannerSize: AdSize.banner),
-      ),
+      // bottomNavigationBar: const BottomAppBar(
+      //   child: BannerAdWidget(bannerSize: AdSize.banner),
+      // ),
       body: BlocConsumer<FetchCategoryCubit, FetchCategoryState>(
         listener: ((context, state) {
           // if (state is FetchCategorySuccess) {}

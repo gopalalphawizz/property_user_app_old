@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:ebroker/Ui/screens/Personalized/personalized_property_screen.dart';
 import 'package:ebroker/Ui/screens/main_activity.dart';
 import 'package:ebroker/data/model/user_model.dart';
@@ -11,8 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:launch_review/launch_review.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../../app/app_theme.dart';
 import '../../../app/routes.dart';
 import '../../../data/cubits/Utility/like_properties.dart';
@@ -29,6 +28,9 @@ import '../../../utils/helper_utils.dart';
 import '../../../utils/hive_utils.dart';
 import '../../../utils/responsiveSize.dart';
 import '../../../utils/ui_utils.dart';
+import '../Enquery/enquery2_from.dart';
+import '../Enquery/enquery2_screen.dart';
+import '../widgets/AnimatedRoutes/blur_page_route.dart';
 import '../widgets/blurred_dialoge_box.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -74,6 +76,10 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   bool get wantKeepAlive => true;
   int? a;
+  getUsertype() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userType');
+  }
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -295,76 +301,76 @@ class _ProfileScreenState extends State<ProfileScreen>
                         dividerWithSpacing(),
                       ],
 
-                      customTile(
-                        context,
-                        title: UiUtils.getTranslatedLabel(context, "myAds"),
-                        svgImagePath: AppIcons.promoted,
-                        onTap: () async {
-                          APICallTrigger.trigger();
-                          GuestChecker.check(
-                            onNotGuest: () {
-                              Navigator.pushNamed(
-                                  context, Routes.myAdvertisment);
-                            },
-                          );
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title:
-                            UiUtils.getTranslatedLabel(context, "subscription"),
-                        svgImagePath: AppIcons.subscription,
-                        onTap: () async {
-                          GuestChecker.check(onNotGuest: () {
-                            Navigator.pushNamed(
-                                context, Routes.subscriptionPackageListRoute);
-                          });
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.getTranslatedLabel(
-                            context, "transactionHistory"),
-                        svgImagePath: AppIcons.transaction,
-                        onTap: () {
-                          GuestChecker.check(onNotGuest: () {
-                            Navigator.pushNamed(
-                                context, Routes.transactionHistory);
-                          });
-                        },
-                      ),
-                      dividerWithSpacing(),
-
-                      customTile(
-                        context,
-                        title: UiUtils.getTranslatedLabel(
-                          context,
-                          "personalized",
-                        ),
-                        svgImagePath: AppIcons.magic,
-                        onTap: () {
-                          GuestChecker.check(onNotGuest: () {
-                            Navigator.pushNamed(
-                                context, Routes.personalizedPropertyScreen,
-                                arguments: {
-                                  "type": PersonalizedVisitType.Normal
-                                });
-                          });
-                        },
-                      ),
-                      dividerWithSpacing(),
-
-                      customTile(
-                        context,
-                        title: UiUtils.getTranslatedLabel(context, "language"),
-                        svgImagePath: AppIcons.language,
-                        onTap: () {
-                          Navigator.pushNamed(
-                              context, Routes.languageListScreenRoute);
-                        },
-                      ),
+                      // customTile(
+                      //   context,
+                      //   title: UiUtils.getTranslatedLabel(context, "myAds"),
+                      //   svgImagePath: AppIcons.promoted,
+                      //   onTap: () async {
+                      //     APICallTrigger.trigger();
+                      //     GuestChecker.check(
+                      //       onNotGuest: () {
+                      //         Navigator.pushNamed(
+                      //             context, Routes.myAdvertisment);
+                      //       },
+                      //     );
+                      //   },
+                      // ),
+                      // dividerWithSpacing(),
+                      // customTile(
+                      //   context,
+                      //   title:
+                      //       UiUtils.getTranslatedLabel(context, "subscription"),
+                      //   svgImagePath: AppIcons.subscription,
+                      //   onTap: () async {
+                      //     GuestChecker.check(onNotGuest: () {
+                      //       Navigator.pushNamed(
+                      //           context, Routes.subscriptionPackageListRoute);
+                      //     });
+                      //   },
+                      // ),
+                     // dividerWithSpacing(),
+                      // customTile(
+                      //   context,
+                      //   title: UiUtils.getTranslatedLabel(
+                      //       context, "transactionHistory"),
+                      //   svgImagePath: AppIcons.transaction,
+                      //   onTap: () {
+                      //     GuestChecker.check(onNotGuest: () {
+                      //       Navigator.pushNamed(
+                      //           context, Routes.transactionHistory);
+                      //     });
+                      //   },
+                      // ),
+                      // dividerWithSpacing(),
+                      //
+                      // customTile(
+                      //   context,
+                      //   title: UiUtils.getTranslatedLabel(
+                      //     context,
+                      //     "personalized",
+                      //   ),
+                      //   svgImagePath: AppIcons.magic,
+                      //   onTap: () {
+                      //     GuestChecker.check(onNotGuest: () {
+                      //       Navigator.pushNamed(
+                      //           context, Routes.personalizedPropertyScreen,
+                      //           arguments: {
+                      //             "type": PersonalizedVisitType.Normal
+                      //           });
+                      //     });
+                      //   },
+                      // ),
+                      // dividerWithSpacing(),
+                      //
+                      // customTile(
+                      //   context,
+                      //   title: UiUtils.getTranslatedLabel(context, "language"),
+                      //   svgImagePath: AppIcons.language,
+                      //   onTap: () {
+                      //     Navigator.pushNamed(
+                      //         context, Routes.languageListScreenRoute);
+                      //   },
+                      // ),
                       dividerWithSpacing(),
                       ValueListenableBuilder(
                           valueListenable: isDarkTheme,
@@ -401,41 +407,83 @@ class _ProfileScreenState extends State<ProfileScreen>
                           });
                         },
                       ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.getTranslatedLabel(context, "articles"),
-                        svgImagePath: AppIcons.articles,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            Routes.articlesScreenRoute,
-                          );
+                      // dividerWithSpacing(),
+                      // customTile(
+                      //   context,
+                      //   title: UiUtils.getTranslatedLabel(context, "articles"),
+                      //   svgImagePath: AppIcons.articles,
+                      //   onTap: () {
+                      //     Navigator.pushNamed(
+                      //       context,
+                      //       Routes.articlesScreenRoute,
+                      //     );
+                      //   },
+                      // ),
+                      FutureBuilder<dynamic>(
+                        future: getUsertype(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            // While the future is still loading, you might want to show a loading indicator.
+                            return CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            // If there's an error while loading the user type, you can handle it here.
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            final userType = snapshot.data as String; // Assuming it should be a String.
+                            return userType == "buyer" ? Column(
+                              children: [
+                                dividerWithSpacing(),
+                                customTile(
+                                  context,
+                                  title: UiUtils.getTranslatedLabel(context, "favorites"),
+                                  svgImagePath: AppIcons.favorites,
+                                  onTap: () {
+                                    GuestChecker.check(onNotGuest: () {
+                                      Navigator.pushNamed(context, Routes.favoritesScreen);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ) : SizedBox.shrink();
+                          }
                         },
                       ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.getTranslatedLabel(context, "favorites"),
-                        svgImagePath: AppIcons.favorites,
-                        onTap: () {
-                          GuestChecker.check(onNotGuest: () {
-                            Navigator.pushNamed(
-                                context, Routes.favoritesScreen);
-                          });
+                      FutureBuilder<dynamic>(
+                        future: getUsertype(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            // While the future is still loading, you might want to show a loading indicator.
+                            return CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            // If there's an error while loading the user type, you can handle it here.
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            final userType = snapshot.data as String; // Assuming it should be a String.
+                            return userType == "buyer" ? Column(
+                              children: [
+                                dividerWithSpacing(),
+                                customTile(
+                                  context,
+                                  title: UiUtils.getTranslatedLabel(
+                                      context, "Enquery"),
+                                  svgImagePath: AppIcons.areaConvertor,
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        BlurredRouter(
+                                          builder: (context) =>
+                                              Enquery2Screen(
+                                              ),
+                                        ));
+
+                                  },
+                                ),
+                              ],
+                            ) : SizedBox.shrink();
+                          }
                         },
                       ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.getTranslatedLabel(
-                            context, "areaConvertor"),
-                        svgImagePath: AppIcons.areaConvertor,
-                        onTap: () {
-                          Navigator.pushNamed(
-                              context, Routes.areaConvertorScreen);
-                        },
-                      ),
+
                       dividerWithSpacing(),
                       customTile(
                         context,
@@ -883,13 +931,16 @@ class _ProfileScreenState extends State<ProfileScreen>
             onAccept: () async {
               Future.delayed(
                 Duration.zero,
-                () {
+                () async {
                   HiveUtils.clear();
+                  final SharedPreferences prefs = await SharedPreferences.getInstance();
+                  await prefs.clear();
                   Constant.favoritePropertyList.clear();
                   context.read<UserDetailsCubit>().clear();
                   context.read<LikedPropertiesCubit>().state.liked.clear();
 
                   context.read<LikedPropertiesCubit>().clear();
+
                   HiveUtils.logoutUser(
                     context,
                     onLogout: () {},

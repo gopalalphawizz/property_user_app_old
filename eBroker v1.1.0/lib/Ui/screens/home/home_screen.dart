@@ -1,6 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ebroker/Ui/screens/home/Widgets/category_card.dart';
 import 'package:ebroker/Ui/screens/home/Widgets/property_gradient_card.dart';
@@ -21,7 +20,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import '../../../app/app.dart';
 import '../../../app/routes.dart';
 import '../../../data/cubits/category/fetch_category_cubit.dart';
@@ -105,7 +103,6 @@ class HomeScreenState extends State<HomeScreen>
   void addPageScrollListener() {
     homeScreenController.addListener(pageScrollListener);
   }
-
   bool _isLoaded = false;
 
   void initializeHomeStateListener() {
@@ -229,11 +226,13 @@ class HomeScreenState extends State<HomeScreen>
               padding: EdgeInsetsDirectional.only(
                 start: sidePadding.rw(context),
               ),
-              child: HiveUtils.getCityName() != null
-                  ? const LocationWidget()
-                  : SizedBox(
-                      child: LoadAppSettings().svg(appSettings.appHomeScreen!),
-                    ),
+              child: Transform.translate(
+                offset: Offset(-20,0),
+                child: SizedBox(
+
+                        child: LoadAppSettings().svg("assets/svg/Fallback/homeLogo.svg"),
+                      ),
+              ),
             ),
             backgroundColor: const Color.fromARGB(0, 0, 0, 0),
             actions: [
@@ -344,30 +343,38 @@ class HomeScreenState extends State<HomeScreen>
                               AppSettings.sections[index];
                           if (section == HomeScreenSections.Search) {
                             return const HomeSearchField();
-                          } else if (section == HomeScreenSections.Slider) {
+                          }
+                          else if (section == HomeScreenSections.Slider) {
                             return sliderWidget();
                           } else if (section == HomeScreenSections.Category) {
                             return categoryWidget();
-                          } else if (section ==
-                              HomeScreenSections.NearbyProperties) {
-                            return buildNearByProperties();
-                          } else if (section ==
-                              HomeScreenSections.FeaturedProperties) {
-                            return featuredProperties(homeScreenState, context);
-                          } else if (section ==
-                              HomeScreenSections.PersonalizedFeed) {
-                            return const PersonalizedPropertyWidget();
-                          } else if (section ==
+                          }
+                          // else if (section ==
+                          //     HomeScreenSections.NearbyProperties) {
+                          //   return buildNearByProperties();
+                          // }
+                          // else if (section ==
+                          //     HomeScreenSections.FeaturedProperties) {
+                          //   return featuredProperties(homeScreenState, context);
+                          // }
+                          // else if (section ==
+                          //     HomeScreenSections.PersonalizedFeed) {
+                          //   return const PersonalizedPropertyWidget();
+                          // }
+                          else if (section ==
                               HomeScreenSections.RecentlyAdded) {
                             return const RecentPropertiesSectionWidget();
-                          } else if (section ==
-                              HomeScreenSections.MostLikedProperties) {
-                            return mostLikedProperties(
-                                homeScreenState, context);
-                          } else if (section == HomeScreenSections.MostViewed) {
-                            return mostViewedProperties(
-                                homeScreenState, context);
-                          } else if (section ==
+                          }
+                          // else if (section ==
+                          //     HomeScreenSections.MostLikedProperties) {
+                          //   return mostLikedProperties(
+                          //       homeScreenState, context);
+                          // }
+                          // else if (section == HomeScreenSections.MostViewed) {
+                          //   return mostViewedProperties(
+                          //       homeScreenState, context);
+                          // }
+                          else if (section ==
                               HomeScreenSections.PopularCities) {
                             return Padding(
                               padding: const EdgeInsets.symmetric(
@@ -375,11 +382,11 @@ class HomeScreenState extends State<HomeScreen>
                               ),
                               child: Column(
                                 children: [
-                                  const BannerAdWidget(),
+                                  // const BannerAdWidget(),
                                   const SizedBox(
                                     height: 10,
                                   ),
-                                  popularCityProperties(),
+                                //  popularCityProperties(),
                                 ],
                               ),
                             );
@@ -945,7 +952,10 @@ class HomeScreenState extends State<HomeScreen>
                 );
               }
               if (state is FetchCategorySuccess) {
-                return ListView.builder(
+                return
+
+
+                  ListView.builder(
                   padding: const EdgeInsets.symmetric(
                     horizontal: sidePadding,
                   ),
@@ -963,7 +973,8 @@ class HomeScreenState extends State<HomeScreen>
                           onTap: () {
                             Navigator.pushNamed(context, Routes.categories);
                           },
-                          child: Container(
+                          child:
+                          Container(
                             constraints: BoxConstraints(
                               minWidth: 100.rw(context),
                             ),
@@ -975,7 +986,8 @@ class HomeScreenState extends State<HomeScreen>
                               borderWidth: 1.5,
                               borderColor: context.color.borderColor,
                             ),
-                            child: Padding(
+                            child:
+                            Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 10),
                               child: Text(
@@ -1147,7 +1159,7 @@ class _RecentPropertiesSectionWidgetState
                           additionalImageWidth: 10,
                         ));
                   },
-                  itemCount: state.properties.length.clamp(0, 4),
+                  itemCount: state.properties.length,
                   shrinkWrap: true,
                 );
               }

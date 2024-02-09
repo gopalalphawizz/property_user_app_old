@@ -5,6 +5,7 @@ import 'package:ebroker/utils/Encryption/rsa.dart';
 import 'package:ebroker/utils/Network/apiCallTrigger.dart';
 import 'package:ebroker/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'exports/main_export.dart';
 
@@ -22,11 +23,25 @@ class EntryPoint extends StatefulWidget {
   EntryPointState createState() => EntryPointState();
 }
 
+
 class EntryPointState extends State<EntryPoint> {
+
+  getCamerapermission() async {
+    var status = await Permission.camera.status;
+    if (status.isDenied) {
+      // We haven't asked for permission yet or the permission has been denied before, but not permanently.
+    }
+
+// You can also directly ask permission about its status.
+    if (await Permission.location.isRestricted) {
+      // The OS restricts access, for example, because of parental controls.
+    }
+  }
   @override
   void initState() {
     super.initState();
     ChatGlobals.init();
+    getCamerapermission();
   }
 
   @override

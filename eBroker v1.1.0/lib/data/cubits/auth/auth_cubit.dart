@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../utils/api.dart';
 import '../../../utils/helper_utils.dart';
 import '../../../utils/hive_utils.dart';
+import '../../../utils/ui_utils.dart';
 import '../../helper/custom_exception.dart';
 
 abstract class AuthState {}
@@ -71,6 +72,8 @@ class AuthCubit extends Cubit<AuthState> {
     File? fileUserimg,
     String? fcmToken,
     String? notification,
+        String ?role,
+
   }) async {
     Map<String, dynamic> parameters = {
       Api.name: name ?? '',
@@ -78,7 +81,9 @@ class AuthCubit extends Cubit<AuthState> {
       Api.address: address ?? '',
       Api.fcmId: fcmToken ?? '',
       Api.userid: HiveUtils.getUserId(),
-      Api.notification: notification
+      Api.notification: notification,
+      Api.role:role
+
     };
     if (fileUserimg != null) {
       parameters['profile'] = await MultipartFile.fromFile(fileUserimg.path);
@@ -95,6 +100,74 @@ class AuthCubit extends Cubit<AuthState> {
       throw CustomException(response[Api.message]);
     }
     return response;
+  }
+
+  enquerySend(
+      BuildContext context, {
+        String? message,String? id}
+      ) async {
+    Map<String, dynamic> parameters = {
+      "message": message ?? '',
+      "property_id":id
+
+    };
+
+    var response =
+        await Api.post(url: Api.apiStoreinqury, parameter: parameters);
+
+    HelperUtils.showSnackBarMessage(context,
+             UiUtils.getTranslatedLabel(context, "${response["message"]}"));
+
+  }
+  enqueryAdd(
+      BuildContext context, {
+        String? name,String? schoolname,String ?subject,String ?description,String ?mobile}
+      ) async {
+    Map<String, dynamic> parameters = {
+      "school_name": schoolname ?? '',
+      "mobile":mobile,
+      "name":name,
+      "subject":subject,
+      "description":description
+
+    };
+
+    var response =
+    await Api.post(url: Api.apiGenerateinqury, parameter: parameters);
+
+    HelperUtils.showSnackBarMessage(context,
+        UiUtils.getTranslatedLabel(context, "${response["message"]}"));
+
+  }
+  enqueryGet(
+      BuildContext context, {
+       String? id}
+      ) async {
+    Map<String, dynamic> parameters = {
+
+      "property_id":id
+
+    };
+
+    var response =
+    await Api.post(url: Api.apiGetinqury, parameter: parameters);
+
+
+    return response;
+
+  }
+  enqueryGetData(
+      BuildContext context,
+
+      ) async {
+
+
+    var response =
+    await Api.post(url: Api.apiGetdatainqury, parameter: {});
+
+
+    return response;
+
   }
 
   void getUserById(

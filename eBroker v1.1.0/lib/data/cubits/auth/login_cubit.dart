@@ -3,6 +3,7 @@
 import 'package:ebroker/data/Repositories/auth_repository.dart';
 import 'package:ebroker/utils/hive_utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class LoginState {}
 
@@ -38,7 +39,7 @@ class LoginCubit extends Cubit<LoginState> {
         phone: phoneNumber,
         uid: fireabseUserId,
       );
-
+     print("${result}"+"result+++++++++++++++++++");
       ///Storing data to local database {HIVE}
       HiveUtils.setJWT(result['token']);
 
@@ -48,11 +49,17 @@ class LoginCubit extends Cubit<LoginState> {
         var data = result['data'];
         data['countryCode'] = countryCode;
         HiveUtils.setUserData(data);
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userType', '${(HiveUtils.getUserDetails().role) ?? ""}');
       } else {
         isProfileIsCompleted = true;
         var data = result['data'];
+
         data['countryCode'] = countryCode;
+
         HiveUtils.setUserData(data);
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userType', '${(HiveUtils.getUserDetails().role) ?? ""}');
       }
 
       emit(LoginSuccess(isProfileCompleted: isProfileIsCompleted));

@@ -14,6 +14,8 @@ class UserModel {
   String? logintype;
   String? mobile;
   String? name;
+  String? role;
+
   int? notification;
   String? profile;
   String? token;
@@ -32,6 +34,7 @@ class UserModel {
       this.logintype,
       this.mobile,
       this.name,
+        this.role,
       this.notification,
       this.profile,
       this.token,
@@ -50,6 +53,7 @@ class UserModel {
     logintype = json['logintype'];
     mobile = json['mobile'];
     name = json['name'];
+    role=json['role'];
     notification = (json['notification'] is int)
         ? json['notification']
         : int.parse((json['notification']));
@@ -72,6 +76,7 @@ class UserModel {
     data['logintype'] = logintype;
     data['mobile'] = mobile;
     data['name'] = name;
+    data['name']=role;
     data['notification'] = notification;
     data['profile'] = profile;
     data['token'] = token;

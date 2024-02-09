@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ebroker/app/app.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +8,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mime_type/mime_type.dart';
-
 import '../Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
 import '../Ui/screens/widgets/blurred_dialoge_box.dart';
 import '../Ui/screens/widgets/full_screen_image_view.dart';

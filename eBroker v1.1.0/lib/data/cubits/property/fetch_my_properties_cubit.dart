@@ -60,6 +60,7 @@ class FetchMyPropertiesCubit extends Cubit<FetchMyPropertiesState> {
   }) async {
     try {
       emit(FetchMyPropertiesInProgress());
+      print("${type}"+"____________________");
       DataOutput<PropertyModel> result =
           await _propertyRepository.fetchMyProperties(offset: 0, type: type);
       emit(FetchMyPropertiesSuccess(

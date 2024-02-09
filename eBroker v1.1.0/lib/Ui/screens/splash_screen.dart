@@ -26,6 +26,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../app/app.dart';
 import '../../app/app_theme.dart';
@@ -68,8 +69,9 @@ class SplashScreenState extends State<SplashScreen>
         );
       },
     );
-
+  // print("hhhhhhhhhhhhhhhhhhhhhhh");
     checkIsUserAuthenticated();
+    // print("hhhhhhhhhhhhhhhhhhhhhhh");
     bool isDataAvailable = checkPersistedDataAvailibility();
     Connectivity().checkConnectivity().then((value) {
       if (value == ConnectivityResult.none && !isDataAvailable) {
@@ -110,6 +112,7 @@ class SplashScreenState extends State<SplashScreen>
             Api.currencySymbol,
           );
     });
+    print("hhhhhhhhhhhhhhhhhhhhhhh");
   }
 
   Future<void> locationPermission() async {
@@ -159,9 +162,9 @@ class SplashScreenState extends State<SplashScreen>
       }.toString(),
       name: "StatusNavigation",
     );
-    if (isTimerCompleted && isSettingsLoaded && isLanguageLoaded) {
+    //if (isTimerCompleted && isSettingsLoaded && isLanguageLoaded) {
       navigateToScreen();
-    }
+   // }
   }
 
   void completeProfileCheck() {
@@ -182,7 +185,7 @@ class SplashScreenState extends State<SplashScreen>
     }
   }
 
-  void navigateToScreen() {
+  Future<void> navigateToScreen() async {
     if (context
             .read<FetchSystemSettingsCubit>()
             .getSetting(SystemSetting.maintenanceMode) ==
@@ -193,10 +196,26 @@ class SplashScreenState extends State<SplashScreen>
         );
       });
     } else if (authenticationState == AuthenticationState.authenticated) {
-      Future.delayed(Duration.zero, () {
-        Navigator.of(context)
-            .pushReplacementNamed(Routes.main, arguments: {'from': "main"});
-      });
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+     String data= await prefs.getString('userType')??"";
+      if(data=="buyer") {
+        Future.delayed(Duration.zero, () {
+          Navigator.of(context)
+              .pushReplacementNamed(Routes.main, arguments: {'from': "main"});
+        });
+      }
+      else if(data=="seller"){
+        Future.delayed(Duration.zero, () {
+          Navigator.of(context)
+              .pushReplacementNamed(Routes.main1, arguments: {'from': "main"});
+        });
+      }
+      // else{
+      //   Future.delayed(Duration.zero, () {
+      //     Navigator.of(context)
+      //         .pushReplacementNamed(Routes.main, arguments: {'from': "main"});
+      //   });
+      // }
     } else if (authenticationState == AuthenticationState.unAuthenticated) {
       if (Hive.box(HiveKeys.userDetailsBox).get("isGuest") == true) {
         Future.delayed(Duration.zero, () {
@@ -259,26 +278,26 @@ class SplashScreenState extends State<SplashScreen>
             statusBarColor: context.color.tertiaryColor,
           ),
           child: Scaffold(
-            backgroundColor: context.color.tertiaryColor,
+            backgroundColor: context.color.buttonColor,
             body: Stack(
               children: [
                 Align(
                   alignment: Alignment.center,
                   child: SizedBox(
-                      width: 150,
-                      height: 150,
+                      width: 250,
+                      height: 250,
                       child: LoadAppSettings().svg(
-                        appSettings.splashLogo!,
+                        "assets/svg/Fallback/splash.svg",
                         // color: context.color.secondaryColor,
                       )),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: Align(
-                      alignment: Alignment.bottomCenter,
-                      key: const ValueKey("companylogo"),
-                      child: UiUtils.getSvg(AppIcons.companyLogo)),
-                )
+                // Padding(
+                //   padding: const EdgeInsets.symmetric(vertical: 16.0),
+                //   child: Align(
+                //       alignment: Alignment.bottomCenter,
+                //       key: const ValueKey("companylogo"),
+                //       child: UiUtils.getSvg(AppIcons.companyLogo)),
+                // )
               ],
             ),
           ),

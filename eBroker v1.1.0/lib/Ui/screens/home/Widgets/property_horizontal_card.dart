@@ -11,6 +11,7 @@ import 'package:ebroker/utils/string_extenstion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../data/model/property_model.dart';
 import '../../../../utils/constant.dart';
@@ -29,6 +30,7 @@ class PropertyHorizontalCard extends StatelessWidget {
   final VoidCallback? onDeleteTap;
   final double? additionalImageWidth;
   final bool? showLikeButton;
+
   const PropertyHorizontalCard(
       {super.key,
       required this.property,
@@ -40,10 +42,19 @@ class PropertyHorizontalCard extends StatelessWidget {
       this.showDeleteButton,
       this.onDeleteTap,
       this.showLikeButton,
-      this.additionalImageWidth});
 
+      this.additionalImageWidth});
+ Future  <String> getUsertype() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+ // print("${prefs.getString('userType')}"+"_________________");
+  String data= prefs.getString('userType')??"";
+
+  return data;
+}
   @override
   Widget build(BuildContext context) {
+
+
     String rentPrice = (property.price!
         .priceFormate(
           disabled: Constant.isNumberWithSuffix == false,
@@ -195,27 +206,42 @@ class PropertyHorizontalCard extends StatelessWidget {
                                                 ),
                                       ),
                                       if (showLikeButton ?? true)
-                                        Container(
-                                          width: 32,
-                                          height: 32,
-                                          decoration: BoxDecoration(
-                                            color: context.color.secondaryColor,
-                                            shape: BoxShape.circle,
-                                            boxShadow: const [
-                                              BoxShadow(
-                                                color:
-                                                    Color.fromARGB(12, 0, 0, 0),
-                                                offset: Offset(0, 2),
-                                                blurRadius: 15,
-                                                spreadRadius: 0,
-                                              )
-                                            ],
-                                          ),
-                                          child: LikeButtonWidget(
-                                            property: property,
-                                            onLikeChanged: onLikeChange,
-                                          ),
-                                        ),
+                                        FutureBuilder<dynamic>(
+                                          future: getUsertype(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                              // While the future is still loading, you might want to show a loading indicator.
+                                              return CircularProgressIndicator();
+                                            } else if (snapshot.hasError) {
+                                              // If there's an error while loading the user type, you can handle it here.
+                                              return Text('Error: ${snapshot.error}');
+                                            } else {
+                                              // Once the future is resolved, you can check the user type.
+                                              final userType = snapshot.data as String; // Assuming it should be a String.
+                                              return userType == "buyer" ? Container(
+                                                width: 32,
+                                                height: 32,
+                                                decoration: BoxDecoration(
+                                                  color: context.color.secondaryColor,
+                                                  shape: BoxShape.circle,
+                                                  boxShadow: const [
+                                                    BoxShadow(
+                                                      color: Color.fromARGB(12, 0, 0, 0),
+                                                      offset: Offset(0, 2),
+                                                      blurRadius: 15,
+                                                      spreadRadius: 0,
+                                                    )
+                                                  ],
+                                                ),
+                                                child: LikeButtonWidget(
+                                                  property: property,
+                                                  onLikeChanged: onLikeChange,
+                                                ),
+                                              ) : SizedBox.shrink();
+                                            }
+                                          },
+                                        )
+
                                     ],
                                   ),
                                   if (property.properyType

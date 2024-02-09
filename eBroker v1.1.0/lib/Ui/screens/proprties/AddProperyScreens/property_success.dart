@@ -30,14 +30,14 @@ class PropertyAddSuccess extends StatelessWidget {
                 const SizedBox(
                   height: 32,
                 ),
-                Text("congratulations".translate(context))
+                Text("Congratulations".translate(context))
                     .size(context.font.extraLarge)
                     .bold()
                     .color(context.color.tertiaryColor),
                 const SizedBox(
                   height: 18,
                 ),
-                Text("submittedSuccess".translate(context))
+                Text("Submitted Success".translate(context))
                     .centerAlign()
                     .size(context.font.larger),
                 const SizedBox(
@@ -63,7 +63,7 @@ class PropertyAddSuccess extends StatelessWidget {
                       side: BorderSide(color: context.color.tertiaryColor)),
                   color: context.color.backgroundColor,
                   child: Text(
-                    "previewProperty".translate(context),
+                    "Preview Property".translate(context),
                   )
                       .size(context.font.larger)
                       .color(context.color.tertiaryColor),
@@ -75,7 +75,7 @@ class PropertyAddSuccess extends StatelessWidget {
                     onTap: () {
                       Navigator.popUntil(context, (route) => route.isFirst);
                     },
-                    child: Text("backToHome".translate(context)).underline())
+                    child: Text("Back To Home".translate(context)).underline())
               ],
             ),
           ),

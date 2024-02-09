@@ -74,7 +74,8 @@ class _SetProeprtyParametersScreenState
             .mapIndexed((index, parameter) => Padding(
                   padding:
                       EdgeInsets.only(top: index == 0 ? 0 : 10, bottom: 10),
-                  child: buildDynamicField(parameter, index),
+                  child:
+                  buildDynamicField(parameter, index),
                 ))
             .toList()
             .cast();
@@ -189,7 +190,7 @@ class _SetProeprtyParametersScreenState
         context,
         showBackButton: true,
         actions: const [
-          Text("3/4"),
+          Text("3/3"),
           SizedBox(
             width: 14,
           ),
@@ -203,7 +204,8 @@ class _SetProeprtyParametersScreenState
         child: UiUtils.buildButton(
           context,
           height: 48.rh(context),
-          onPressed: () async {
+          onPressed: ()
+          async {
             // if (_formKey.currentState!.validate() == false) return;
 
             //TODO: TODO
@@ -260,8 +262,20 @@ class _SetProeprtyParametersScreenState
                 // },));
                 apiParameters?['isUpdate'] = widget.isUpdate;
 
-                Navigator.pushNamed(context, Routes.selectOutdoorFacility,
-                    arguments: apiParameters);
+                Map<String, dynamic>? parameters = apiParameters;
+
+                ///adding facility data to api payload
+                parameters
+                  ?..remove("assign_facilities")
+                  ..remove("isUpdate");
+                  context
+                      .read<CreatePropertyCubit>()
+                      .create(parameters: parameters??{});
+
+
+
+                // Navigator.pushNamed(context, Routes.selectOutdoorFacility,
+                //     arguments: apiParameters);
 
                 // context
                 //     .read<CreatePropertyCubit>()
@@ -269,7 +283,9 @@ class _SetProeprtyParametersScreenState
               },
             );
           },
-          buttonTitle: UiUtils.getTranslatedLabel(context, "next"),
+          buttonTitle: apiParameters?['action_type'] == "0"
+              ? UiUtils.getTranslatedLabel(context, "update")
+              : UiUtils.getTranslatedLabel(context, "submitProperty"),
         ),
       ),
       body: Form(
@@ -313,11 +329,11 @@ class _SetProeprtyParametersScreenState
                 HelperUtils.showSnackBarMessage(context,
                     UiUtils.getTranslatedLabel(context, "propertyUpdated"),
                     type: MessageType.success, onClose: () {
-                  Navigator.of(context)
-                    ..pop()
+                   Navigator.of(context)
                     ..pop()
                     ..pop()
                     ..pop();
+                   //  ..pop();
                 });
               }
             }

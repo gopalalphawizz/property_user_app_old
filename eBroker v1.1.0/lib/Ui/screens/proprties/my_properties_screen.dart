@@ -83,38 +83,42 @@ class MyPropertyState extends State<PropertiesScreen>
               padding: const EdgeInsetsDirectional.fromSTEB(15, 8, 15, 0),
               child: Row(
                 children: [
-                  customTab(
-                    context,
-                    isSelected: (selectTab == 0),
-                    onTap: () {
-                      selectTab = 0;
-                      propertyScreenCurrentPage = 0;
-                      setState(() {});
-                      _pageController.jumpToPage(0);
-                      cubitReference = context.read<FetchMyPropertiesCubit>();
-                      propertyType = "sell";
-                    },
-                    name: UiUtils.getTranslatedLabel(context, "sell"),
-                    onDoubleTap: () {},
+                  Expanded(
+                    child: customTab(
+                      context,
+                      isSelected: (selectTab == 0),
+                      onTap: () {
+                        selectTab = 0;
+                        propertyScreenCurrentPage = 0;
+                        setState(() {});
+                        _pageController.jumpToPage(0);
+                        cubitReference = context.read<FetchMyPropertiesCubit>();
+                        propertyType = "sell";
+                      },
+                      name: UiUtils.getTranslatedLabel(context, "sell"),
+                      onDoubleTap: () {},
+                    ),
                   ),
                   const SizedBox(
                     width: 5,
                   ),
-                  customTab(
-                    context,
-                    isSelected: selectTab == 1,
-                    onTap: () {
-                      _pageController.jumpToPage(1);
-                      selectTab = 1;
-                      propertyScreenCurrentPage = 1;
-
-                      cubitReference = context.read<FetchMyPropertiesCubit>();
-                      propertyType = "rent";
-
-                      setState(() {});
-                    },
-                    onDoubleTap: () {},
-                    name: UiUtils.getTranslatedLabel(context, "rent"),
+                  Expanded(
+                    child: customTab(
+                      context,
+                      isSelected: selectTab == 1,
+                      onTap: () {
+                        _pageController.jumpToPage(1);
+                        selectTab = 1;
+                        propertyScreenCurrentPage = 1;
+                    
+                        cubitReference = context.read<FetchMyPropertiesCubit>();
+                        propertyType = "rent";
+                    
+                        setState(() {});
+                      },
+                      onDoubleTap: () {},
+                      name: UiUtils.getTranslatedLabel(context, "rent"),
+                    ),
                   ),
                 ],
               ),
@@ -177,6 +181,7 @@ class MyPropertyState extends State<PropertiesScreen>
         body: ScrollConfiguration(
           behavior: RemoveGlow(),
           child: PageView(
+
             onPageChanged: (value) {
               propertyScreenCurrentPage = value;
               selectTab = value;

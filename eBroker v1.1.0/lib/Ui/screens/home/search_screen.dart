@@ -6,7 +6,6 @@ import 'package:ebroker/utils/AdMob/bannerAdLoadWidget.dart';
 import 'package:ebroker/utils/api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../../app/routes.dart';
 import '../../../data/cubits/property/search_property_cubit.dart';
@@ -134,9 +133,9 @@ class SearchScreenState extends State<SearchScreen>
         backgroundColor: context.color.primaryColor,
         title: searchTextField(),
       ),
-      bottomNavigationBar: const BottomAppBar(
-        child: BannerAdWidget(bannerSize: AdSize.banner),
-      ),
+      // bottomNavigationBar: const BottomAppBar(
+      //   child: BannerAdWidget(bannerSize: AdSize.banner),
+      // ),
       body: Column(
         children: [
           // BlocBuilder<PropertyCubit, PropertyState>(
@@ -336,34 +335,34 @@ class SearchScreenState extends State<SearchScreen>
               SizedBox(
                 width: 5,
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    Routes.filterScreen,
-                  ).then((value) {
-                    if (value == true) {
-                      context
-                          .read<SearchPropertyCubit>()
-                          .searchProperty(searchController.text, offset: 0);
-                    }
-                  });
-                },
-                child: Container(
-                  width: 50.rw(context),
-                  height: 50.rh(context),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                        width: 1.5, color: context.color.borderColor),
-                    color: context.color.secondaryColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: UiUtils.getSvg(AppIcons.filter,
-                        color: context.color.tertiaryColor),
-                  ),
-                ),
-              ),
+              // GestureDetector(
+              //   onTap: () {
+              //     Navigator.pushNamed(
+              //       context,
+              //       Routes.filterScreen,
+              //     ).then((value) {
+              //       if (value == true) {
+              //         context
+              //             .read<SearchPropertyCubit>()
+              //             .searchProperty(searchController.text, offset: 0);
+              //       }
+              //     });
+              //   },
+              //   child: Container(
+              //     width: 50.rw(context),
+              //     height: 50.rh(context),
+              //     decoration: BoxDecoration(
+              //       border: Border.all(
+              //           width: 1.5, color: context.color.borderColor),
+              //       color: context.color.secondaryColor,
+              //       borderRadius: BorderRadius.circular(10),
+              //     ),
+              //     child: Center(
+              //       child: UiUtils.getSvg(AppIcons.filter,
+              //           color: context.color.tertiaryColor),
+              //     ),
+              //   ),
+              // ),
               SizedBox(
                 width: c.maxWidth * 0.06,
               )

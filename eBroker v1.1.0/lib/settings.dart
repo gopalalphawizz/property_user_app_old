@@ -7,7 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 /// For theme colors go to [lib/Ui/Theme/theme.dart]
 class AppSettings {
   ///Basic Settings
-  static const String applicationName = 'eBroker';
+  static const String applicationName = 'Latur Service';
   static const String androidPackageName = 'com.ebroker.wrteam';
   static const String iOSAppId = '12345678';
   static const String playstoreURLAndroid =
@@ -16,7 +16,7 @@ class AppSettings {
   static const String shareAppText = "Share this App";
 
   ///API Setting
-  static const String hostUrl = "URL HERE";
+  static const String hostUrl = "https://latur.developmentalphawizz.com/";
 
   static const int apiDataLoadLimit = 20;
   static const int maxCategoryShowLengthInHomeScreen = 5;
@@ -30,10 +30,10 @@ it will call API in background without showing the process and when data availab
 
   /// You will find this prefix from firebase console in dynamic link section
   static const String deepLinkPrefix =
-      "https://demo.page.link"; //demo.page.link
+      "https://laturservice.page.link"; //demo.page.link
 
   //set anything you want
-  static const String deepLinkName = "ebroker"; //deeplink demo.com
+  static const String deepLinkName = "laturService"; //deeplink demo.com
 
   static const MapType googleMapType =
       MapType.normal; //none , normal , satellite , terrain , hybrid

@@ -65,6 +65,7 @@ class FetchPropertyFromCategoryCubit
         offset: 0,
         showPropertyType: showPropertyType,
       );
+
       emit(
         FetchPropertyFromCategorySuccess(
           isLoadingMore: false,

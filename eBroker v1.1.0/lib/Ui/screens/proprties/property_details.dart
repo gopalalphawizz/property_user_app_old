@@ -3,7 +3,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:ui';
-
 import 'package:ebroker/Ui/screens/chat/chat_screen.dart';
 import 'package:ebroker/Ui/screens/proprties/Property%20tab/sell_rent_screen.dart';
 import 'package:ebroker/Ui/screens/proprties/widgets/report_property_widget.dart';
@@ -38,12 +37,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart' as urllauncher;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-
 import '../../../data/cubits/chatCubits/send_message.dart';
 import '../../../data/cubits/outdoorfacility/fetch_outdoor_facility_list.dart';
 import '../../../data/helper/widgets.dart';
@@ -53,6 +51,8 @@ import '../../../utils/AdMob/interstitialAdManager.dart';
 import '../../../utils/guestChecker.dart';
 import '../../../utils/helper_utils.dart';
 import '../../../utils/ui_utils.dart';
+import '../Enquery/enquery_screen.dart';
+import '../Enquery/view_enquery_screen.dart';
 import '../analytics/analytics_screen.dart';
 import '../widgets/AnimatedRoutes/blur_page_route.dart';
 import '../widgets/all_gallary_image.dart';
@@ -130,7 +130,6 @@ class PropertyDetailsState extends State<PropertyDetails>
   bool isPromoted = false;
   bool showGoogleMap = false;
   bool isEnquiryFromChat = false;
-  BannerAd? _bannerAd;
   @override
   bool get wantKeepAlive => true;
 
@@ -140,14 +139,11 @@ class PropertyDetailsState extends State<PropertyDetails>
   String youtubeVideoThumbnail = "";
   bool? _isLoaded;
 
-  InterstitialAdManager interstitialAdManager = InterstitialAdManager();
 
   @override
   void initState() {
     super.initState();
-    loadAd();
 
-    interstitialAdManager.load();
     // customListenerForConstant();
     //add title image along with gallary images1
     context.read<FetchOutdoorFacilityListCubit>().fetch();
@@ -198,27 +194,6 @@ class PropertyDetailsState extends State<PropertyDetails>
     }
   }
 
-  void loadAd() {
-    _bannerAd = BannerAd(
-      adUnitId: Constant.admobBannerAndroid,
-      request: const AdRequest(),
-      size: AdSize.largeBanner,
-      listener: BannerAdListener(
-        // Called when an ad is successfully received.
-        onAdLoaded: (ad) {
-          debugPrint('$ad loaded.');
-          setState(() {
-            _isLoaded = true;
-          });
-        },
-        // Called when an ad request failed.
-        onAdFailedToLoad: (ad, err) {
-          // Dispose the ad here to free resources.
-          ad.dispose();
-        },
-      ),
-    )..load();
-  }
 
   Future<void> getProperty() async {
     var response = await HelperUtils.sendApiRequest(
@@ -333,7 +308,6 @@ class PropertyDetailsState extends State<PropertyDetails>
     return SafeArea(
       child: WillPopScope(
         onWillPop: () async {
-          await interstitialAdManager.show();
           if (widget.fromPropertyAddSuccess ?? false) {
             Navigator.popUntil(context, (route) => route.isFirst);
             return false;
@@ -354,26 +328,26 @@ class PropertyDetailsState extends State<PropertyDetails>
                 hideTopBorder: true,
                 showBackButton: true,
                 actions: [
-                  if (!HiveUtils.isGuest()) ...[
-                    if (int.parse(HiveUtils.getUserId() ?? "0") ==
-                        property?.addedBy)
-                      IconButton(
-                          onPressed: () {
-                            Navigator.push(context, BlurredRouter(
-                              builder: (context) {
-                                return AnalyticsScreen(
-                                  interestUserCount: widget
-                                      .property!.totalInterestedUsers
-                                      .toString(),
-                                );
-                              },
-                            ));
-                          },
-                          icon: Icon(
-                            Icons.analytics,
-                            color: context.color.tertiaryColor,
-                          )),
-                  ],
+                  // if (!HiveUtils.isGuest()) ...[
+                  //   if (int.parse(HiveUtils.getUserId() ?? "0") ==
+                  //       property?.addedBy)
+                  //     IconButton(
+                  //         onPressed: () {
+                  //           Navigator.push(context, BlurredRouter(
+                  //             builder: (context) {
+                  //               return AnalyticsScreen(
+                  //                 interestUserCount: widget
+                  //                     .property!.totalInterestedUsers
+                  //                     .toString(),
+                  //               );
+                  //             },
+                  //           ));
+                  //         },
+                  //         icon: Icon(
+                  //           Icons.analytics,
+                  //           color: context.color.tertiaryColor,
+                  //         )),
+                  // ],
                   IconButton(
                     onPressed: () {
                       HelperUtils.share(
@@ -473,12 +447,14 @@ class PropertyDetailsState extends State<PropertyDetails>
                   )
                 ]),
             backgroundColor: context.color.backgroundColor,
-            floatingActionButton: (property == null ||
+            floatingActionButton:
+            (property == null ||
                     property!.addedBy.toString() == HiveUtils.getUserId())
                 ? const SizedBox.shrink()
                 : Container(),
-            bottomNavigationBar: isPlayingYoutubeVideo == false
-                ? BottomAppBar(
+                bottomNavigationBar: isPlayingYoutubeVideo == false
+                ?
+                 BottomAppBar(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     color: context.color.secondaryColor,
                     child: bottomNavBar())
@@ -490,7 +466,6 @@ class PropertyDetailsState extends State<PropertyDetails>
                 if (state is DeletePropertyInProgress) {
                   Widgets.showLoader(context);
                 }
-
                 if (state is DeletePropertySuccess) {
                   Widgets.hideLoder(context);
                   Future.delayed(
@@ -513,7 +488,6 @@ class PropertyDetailsState extends State<PropertyDetails>
                       if (state is UpdatePropertyStatusInProgress) {
                         Widgets.showLoader(context);
                       }
-
                       if (state is UpdatePropertyStatusSuccess) {
                         Widgets.hideLoder(context);
                         Fluttertoast.showToast(
@@ -540,7 +514,6 @@ class PropertyDetailsState extends State<PropertyDetails>
                           const SizedBox(
                             height: 10,
                           ),
-
                           if (!isPlayingYoutubeVideo)
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -575,29 +548,37 @@ class PropertyDetailsState extends State<PropertyDetails>
                                             showFullScreenImage: true,
                                           ),
                                         ),
-                                        PositionedDirectional(
-                                          top: 20,
-                                          end: 20,
-                                          child: LikeButtonWidget(
-                                            onStateChange:
-                                                (AddToFavoriteCubitState
-                                                    state) {
-                                              if (state
-                                                  is AddToFavoriteCubitInProgress) {
-                                                favoriteInProgress = true;
-                                                setState(
-                                                  () {},
-                                                );
-                                              } else {
-                                                favoriteInProgress = false;
-                                                setState(
-                                                  () {},
-                                                );
-                                              }
-                                            },
-                                            property: property!,
-                                          ),
+                                        FutureBuilder<dynamic>(
+                                          future: getUsertype(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                              // While the future is still loading, you might want to show a loading indicator.
+                                              return CircularProgressIndicator();
+                                            } else if (snapshot.hasError) {
+                                              // If there's an error while loading the user type, you can handle it here.
+                                              return Text('Error: ${snapshot.error}');
+                                            } else {
+                                              final userType = snapshot.data as String; // Assuming it should be a String.
+                                              return userType == "buyer" ? PositionedDirectional(
+                                                top: 20,
+                                                end: 20,
+                                                child: LikeButtonWidget(
+                                                  onStateChange: (AddToFavoriteCubitState state) {
+                                                    if (state is AddToFavoriteCubitInProgress) {
+                                                      favoriteInProgress = true;
+                                                      setState(() {});
+                                                    } else {
+                                                      favoriteInProgress = false;
+                                                      setState(() {});
+                                                    }
+                                                  },
+                                                  property: property!,
+                                                ),
+                                              ) : SizedBox.shrink();
+                                            }
+                                          },
                                         ),
+
                                         PositionedDirectional(
                                           bottom: 5,
                                           end: 18,
@@ -703,9 +684,9 @@ class PropertyDetailsState extends State<PropertyDetails>
                                           .size(18)
                                           .bold(weight: FontWeight.w600),
                                     ),
-                                    Text(property?.postCreated ?? "").color(
-                                        context.color.textColorDark
-                                            .withOpacity(0.6)),
+                                    // Text(property?.postCreated ?? "").color(
+                                    //     context.color.textColorDark
+                                    //         .withOpacity(0.6)),
                                   ],
                                 ),
                                 const SizedBox(height: 13),
@@ -764,12 +745,10 @@ class PropertyDetailsState extends State<PropertyDetails>
                                             parameter?.value == "0" ||
                                             parameter?.value == null ||
                                             parameter?.value == "null");
-
                                     ///If it has no value
                                     if (isParameterValueEmpty) {
                                       return const SizedBox.shrink();
                                     }
-
                                     return ConstrainedBox(
                                       constraints: BoxConstraints(
                                           minWidth:
@@ -914,12 +893,12 @@ class PropertyDetailsState extends State<PropertyDetails>
                                 ),
 
                                 //TODO:
-                                if (_bannerAd != null &&
-                                    Constant.isAdmobAdsEnabled)
-                                  SizedBox(
-                                      width: _bannerAd?.size.width.toDouble(),
-                                      height: _bannerAd?.size.height.toDouble(),
-                                      child: AdWidget(ad: _bannerAd!)),
+                                // if (_bannerAd != null &&
+                                //     Constant.isAdmobAdsEnabled)
+                                  // SizedBox(
+                                  //     width: _bannerAd?.size.width.toDouble(),
+                                  //     height: _bannerAd?.size.height.toDouble(),
+                                  //     child: AdWidget(ad: _bannerAd!)),
 
                                 const SizedBox(
                                   height: 20,
@@ -938,23 +917,23 @@ class PropertyDetailsState extends State<PropertyDetails>
                                     outdoorFacilityList: widget.property
                                             ?.assignedOutdoorFacility ??
                                         []),
-                                Text(UiUtils.getTranslatedLabel(
-                                        context, "listedBy"))
-                                    .color(context.color.textColorDark)
-                                    .size(16)
-                                    .bold(weight: FontWeight.w600),
-                                const SizedBox(
-                                  height: 14,
-                                ),
-                                GestureDetector(
-                                  onTap: () {},
-                                  child: CusomterProfileWidget(
-                                    widget: widget,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
+                                // Text(UiUtils.getTranslatedLabel(
+                                //         context, "listedBy"))
+                                //     .color(context.color.textColorDark)
+                                //     .size(16)
+                                //     .bold(weight: FontWeight.w600),
+                                // const SizedBox(
+                                //   height: 14,
+                                // ),
+                                // GestureDetector(
+                                //   onTap: () {},
+                                //   child: CusomterProfileWidget(
+                                //     widget: widget,
+                                //   ),
+                                // ),
+                                // const SizedBox(
+                                //   height: 10,
+                                // ),
                                 if (gallary?.isNotEmpty ?? false) ...[
                                   Text(UiUtils.getTranslatedLabel(
                                           context, "gallery"))
@@ -1102,11 +1081,11 @@ class PropertyDetailsState extends State<PropertyDetails>
                                 const SizedBox(
                                   height: 15,
                                 ),
-                                Text(UiUtils.getTranslatedLabel(
-                                        context, "locationLbl"))
-                                    .color(context.color.textColorDark)
-                                    .size(context.font.large)
-                                    .bold(weight: FontWeight.w600),
+                                // Text(UiUtils.getTranslatedLabel(
+                                //         context, "locationLbl"))
+                                //     .color(context.color.textColorDark)
+                                //     .size(context.font.large)
+                                //     .bold(weight: FontWeight.w600),
                                 SizedBox(
                                   height: 10.rh(context),
                                 ),
@@ -1139,67 +1118,67 @@ class PropertyDetailsState extends State<PropertyDetails>
                                 SizedBox(
                                   height: 10.rh(context),
                                 ),
-                                SizedBox(
-                                  height: 175,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Stack(
-                                      fit: StackFit.expand,
-                                      children: [
-                                        Image.asset(
-                                          "assets/map.png",
-                                          fit: BoxFit.cover,
-                                        ),
-                                        BackdropFilter(
-                                          filter: ImageFilter.blur(
-                                            sigmaX: 4.0,
-                                            sigmaY: 4.0,
-                                          ),
-                                          child: Center(
-                                            child: MaterialButton(
-                                              onPressed: () {
-                                                Navigator.push(context,
-                                                    BlurredRouter(
-                                                  builder: (context) {
-                                                    return Scaffold(
-                                                      extendBodyBehindAppBar:
-                                                          true,
-                                                      appBar: AppBar(
-                                                        elevation: 0,
-                                                        iconTheme: IconThemeData(
-                                                            color: context.color
-                                                                .tertiaryColor),
-                                                        backgroundColor:
-                                                            Colors.transparent,
-                                                      ),
-                                                      body: GoogleMapScreen(
-                                                          property: property,
-                                                          kInitialPlace:
-                                                              _kInitialPlace,
-                                                          controller:
-                                                              _controller),
-                                                    );
-                                                  },
-                                                ));
-                                              },
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(5)),
-                                              color:
-                                                  context.color.tertiaryColor,
-                                              elevation: 0,
-                                              child: Text("viewMap"
-                                                      .translate(context))
-                                                  .color(
-                                                context.color.buttonColor,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                                // SizedBox(
+                                //   height: 175,
+                                //   child: ClipRRect(
+                                //     borderRadius: BorderRadius.circular(10),
+                                //     child: Stack(
+                                //       fit: StackFit.expand,
+                                //       children: [
+                                //         Image.asset(
+                                //           "assets/map.png",
+                                //           fit: BoxFit.cover,
+                                //         ),
+                                //         BackdropFilter(
+                                //           filter: ImageFilter.blur(
+                                //             sigmaX: 4.0,
+                                //             sigmaY: 4.0,
+                                //           ),
+                                //           child: Center(
+                                //             child: MaterialButton(
+                                //               onPressed: () {
+                                //                 Navigator.push(context,
+                                //                     BlurredRouter(
+                                //                   builder: (context) {
+                                //                     return Scaffold(
+                                //                       extendBodyBehindAppBar:
+                                //                           true,
+                                //                       appBar: AppBar(
+                                //                         elevation: 0,
+                                //                         iconTheme: IconThemeData(
+                                //                             color: context.color
+                                //                                 .tertiaryColor),
+                                //                         backgroundColor:
+                                //                             Colors.transparent,
+                                //                       ),
+                                //                       body: GoogleMapScreen(
+                                //                           property: property,
+                                //                           kInitialPlace:
+                                //                               _kInitialPlace,
+                                //                           controller:
+                                //                               _controller),
+                                //                     );
+                                //                   },
+                                //                 ));
+                                //               },
+                                //               shape: RoundedRectangleBorder(
+                                //                   borderRadius:
+                                //                       BorderRadius.circular(5)),
+                                //               color:
+                                //                   context.color.tertiaryColor,
+                                //               elevation: 0,
+                                //               child: Text("viewMap"
+                                //                       .translate(context))
+                                //                   .color(
+                                //                 context.color.buttonColor,
+                                //               ),
+                                //             ),
+                                //           ),
+                                //         ),
+                                //       ],
+                                //     ),
+                                //   ),
+                                // ),
                                 const SizedBox(
                                   height: 18,
                                 ),
@@ -1208,7 +1187,7 @@ class PropertyDetailsState extends State<PropertyDetails>
                                       property?.addedBy)
                                     Row(
                                       children: [
-                                        // sendEnquiryButtonWithState(),
+                                         //sendEnquiryButtonWithState(),
                                         setInterest(),
                                       ],
                                     ),
@@ -1216,19 +1195,19 @@ class PropertyDetailsState extends State<PropertyDetails>
                                 const SizedBox(
                                   height: 18,
                                 ),
-                                if (Constant.showExperimentals &&
-                                    !reportedProperties
-                                        .contains(widget.property!.id) &&
-                                    widget.property!.addedBy.toString() !=
-                                        HiveUtils.getUserId())
-                                  ReportPropertyButton(
-                                    propertyId: property!.id!,
-                                    onSuccess: () {
-                                      setState(
-                                        () {},
-                                      );
-                                    },
-                                  )
+                                // if (Constant.showExperimentals &&
+                                //     !reportedProperties
+                                //         .contains(widget.property!.id) &&
+                                //     widget.property!.addedBy.toString() !=
+                                //         HiveUtils.getUserId())
+                                //   ReportPropertyButton(
+                                //     propertyId: property!.id!,
+                                //     onSuccess: () {
+                                //       setState(
+                                //         () {},
+                                //       );
+                                //     },
+                                //   )
                               ],
                             ),
 
@@ -1334,39 +1313,49 @@ class PropertyDetailsState extends State<PropertyDetails>
                       if (isPromoted == false &&
                           (property?.status.toString() != "0")) ...[
                         Expanded(
+                          flex: 4,
                             child: UiUtils.buildButton(
+
                           context,
+
                           disabled: (property?.status.toString() == "0"),
                           // padding: const EdgeInsets.symmetric(horizontal: 1),
                           outerPadding: const EdgeInsets.all(
                             1,
                           ),
                           onPressed: () {
-                            Navigator.pushNamed(
-                              context,
-                              Routes.createAdvertismentScreenRoute,
-                              arguments: {
-                                "model": property,
-                              },
-                            ).then(
-                              (value) {
-                                setState(() {});
-                              },
-                            );
+                            Navigator.push(
+                                context,
+                                BlurredRouter(
+                                  builder: (context) =>
+                                      ViewEnqueryScreen(
+                                          id: widget.property!.id!.toString()),
+                                ));
+                            // Navigator.pushNamed(
+                            //   context,
+                            //   Routes.createAdvertismentScreenRoute,
+                            //   arguments: {
+                            //     "model": property,
+                            //   },
+                            // ).then(
+                            //   (value) {
+                            //     setState(() {});
+                            //   },
+                            // );
                           },
-                          prefixWidget: Padding(
-                            padding: const EdgeInsets.only(right: 6),
-                            child: SvgPicture.asset(
-                              AppIcons.promoted,
-                              width: 14,
-                              height: 14,
-                            ),
-                          ),
+                          // prefixWidget: Padding(
+                          //   padding: const EdgeInsets.only(right: 6),
+                          //   child: SvgPicture.asset(
+                          //     AppIcons.promoted,
+                          //     width: 14,
+                          //     height: 14,
+                          //   ),
+                          // ),
 
-                          fontSize: context.font.normal,
-                          width: context.screenWidth / 3,
+                          fontSize: context.font.small,
+                          width: context.screenWidth ,
                           buttonTitle:
-                              UiUtils.getTranslatedLabel(context, "feature"),
+                              UiUtils.getTranslatedLabel(context, "Viwe Enquery"),
                         )),
                         const SizedBox(
                           width: 8,
@@ -1374,6 +1363,7 @@ class PropertyDetailsState extends State<PropertyDetails>
                       ],
                     ],
                     Expanded(
+                      flex: 3,
                       child: UiUtils.buildButton(context,
                           // padding: const EdgeInsets.symmetric(horizontal: 1),
                           outerPadding: const EdgeInsets.all(1), onPressed: () {
@@ -1432,6 +1422,7 @@ class PropertyDetailsState extends State<PropertyDetails>
                       width: 8,
                     ),
                     Expanded(
+                      flex: 3,
                       child: UiUtils.buildButton(context,
                           padding: const EdgeInsets.symmetric(horizontal: 1),
                           outerPadding: const EdgeInsets.all(1),
@@ -1511,15 +1502,15 @@ class PropertyDetailsState extends State<PropertyDetails>
         padding: const EdgeInsets.symmetric(vertical: 10.0),
         child: Row(
           children: <Widget>[
-            Expanded(child: callButton()),
-            const SizedBox(
-              width: 8,
-            ),
-            Expanded(child: messageButton()),
-            const SizedBox(
-              width: 8,
-            ),
-            Expanded(child: chatButton()),
+            // Expanded(child: callButton()),
+            // const SizedBox(
+            //   width: 8,
+            // ),
+            // Expanded(child: messageButton()),
+            // const SizedBox(
+            //   width: 8,
+            // ),
+            // Expanded(child: chatButton()),
           ],
         ),
       ),
@@ -1585,10 +1576,21 @@ class PropertyDetailsState extends State<PropertyDetails>
               context.read<ChangeInterestInPropertyCubit>().changeInterest(
                   propertyId: widget.property!.id!.toString(),
                   interest: interest);
+               if(icon == Icons.not_interested_outlined){}
+               else {
+                 print("${widget.property!.id!.toString()}");
+                 Navigator.push(
+                     context,
+                     BlurredRouter(
+                       builder: (context) =>
+                           EnqueryFromWidget(
+                               id: widget.property!.id!.toString()),
+                     ));
+               }
             },
             buttonTitle: (icon == Icons.not_interested_outlined
-                ? UiUtils.getTranslatedLabel(context, "interested")
-                : UiUtils.getTranslatedLabel(context, "interest")),
+                ? UiUtils.getTranslatedLabel(context, "Alredy Sent Enquery")
+                : UiUtils.getTranslatedLabel(context, "Enquery")),
             fontSize: context.font.large,
             prefixWidget: Padding(
               padding: const EdgeInsetsDirectional.only(end: 14),
@@ -1700,7 +1702,10 @@ class PropertyDetailsState extends State<PropertyDetails>
           ),
         ));
   }
-
+  getUsertype() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userType');
+  }
   _onTapCall() async {
     var contactNumber = widget.property?.customerNumber;
 

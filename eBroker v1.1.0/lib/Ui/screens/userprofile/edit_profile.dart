@@ -23,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../app/routes.dart';
 import '../../../data/helper/widgets.dart';
@@ -67,11 +68,13 @@ class UserProfileScreenState extends State<UserProfileScreen> {
   dynamic city, _state, country, placeid;
   String? name, email, address;
   File? fileUserimg;
-  bool isNotificationsEnabled = true;
+  String _selectedRole ='buyer';
+      bool isNotificationsEnabled = true;
+
   @override
   void initState() {
     super.initState();
-
+    getLocaldata();
     city = HiveUtils.getCityName();
     _state = HiveUtils.getStateName();
     country = HiveUtils.getCountryName();
@@ -86,7 +89,13 @@ class UserProfileScreenState extends State<UserProfileScreen> {
 
     _saperateNumber();
   }
+ getLocaldata() async {
 
+   _selectedRole=(HiveUtils.getUserDetails().role) ?? "buyer";
+   setState(() {
+
+   });
+ }
   String _saperateNumber() {
     // FirebaseAuth.instance.currentUser.sendEmailVerification();
     String? mobile = HiveUtils.getUserDetails().mobile;
@@ -166,16 +175,65 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
+
+
                             Align(
                               alignment: Alignment.center,
                               child: buildProfilePicture(),
                             ),
+                            widget.from == "login"?   Row(
+                              children: [
+                                Expanded(
+                                  child: RadioListTile(
+                                    activeColor: context.color.tertiaryColor,
+                                    title: Text('Buyer'),
+                                    value: 'buyer',
+                                    groupValue: _selectedRole,
+                                    onChanged: (value) async {
+                                      print("HHHHHHHHHHH");
+
+                                      setState(() {
+                                        _selectedRole = value??"";
+                                      });
+                                      final SharedPreferences prefs = await SharedPreferences.getInstance();
+                                      await prefs.setString('userType', '${value}');
+                                      // Navigator.of(context)
+                                      //     .pushNamedAndRemoveUntil(Routes.main, (route) => false,arguments: {'from': "main"} );
+                                    },
+                                  ),
+                                ),
+
+                                Expanded(
+                                  child: RadioListTile(
+                                    activeColor: context.color.tertiaryColor,
+                                    title: Text('Seller'),
+                                    value: 'seller',
+                                    groupValue: _selectedRole,
+                                    onChanged: (value) async {
+
+                                      final SharedPreferences prefs = await SharedPreferences.getInstance();
+                                      await prefs.setString('userType', '${value}');
+                                      print("HHHHHHHHHHH");
+                                      // Navigator.of(context)
+                                      //     .pushNamedAndRemoveUntil(Routes.main1, (route) => false,arguments: {'from': "main"} );
+
+                                      setState(() {
+                                        _selectedRole = value??"";
+
+
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ):SizedBox.shrink(),
                             buildTextField(
                               context,
                               title: "fullName",
                               controller: nameController,
                               validator: CustomTextFieldValidator.nullCheck,
                             ),
+
                             buildTextField(
                               context,
                               title: "companyEmailLbl",
@@ -198,23 +256,23 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                             const SizedBox(
                               height: 10,
                             ),
-                            Text("enablesNewSection".translate(context))
-                                .size(context.font.small)
-                                .bold(weight: FontWeight.w300)
-                                .color(
-                                  context.color.textColorDark.withOpacity(0.8),
-                                ),
-                            SizedBox(
-                              height: 20.rh(context),
-                            ),
-                            Text(
-                              UiUtils.getTranslatedLabel(
-                                  context, "notification"),
-                            ),
-                            SizedBox(
-                              height: 10.rh(context),
-                            ),
-                            buildNotificationEnableDisableSwitch(context),
+                            // Text("enablesNewSection".translate(context))
+                            //     .size(context.font.small)
+                            //     .bold(weight: FontWeight.w300)
+                            //     .color(
+                            //       context.color.textColorDark.withOpacity(0.8),
+                            //     ),
+                            // SizedBox(
+                            //   height: 20.rh(context),
+                            // ),
+                            // Text(
+                            //   UiUtils.getTranslatedLabel(
+                            //       context, "notification"),
+                            // ),
+                            // SizedBox(
+                            //   height: 10.rh(context),
+                            // ),
+                            // buildNotificationEnableDisableSwitch(context),
                             SizedBox(
                               height: 25.rh(context),
                             ),
@@ -436,7 +494,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
         const SizedBox(
           width: 10,
         ),
-        locationWidget(context),
+        // locationWidget(context),
       ],
     );
   }
@@ -550,6 +608,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
           email: emailController.text.trim(),
           fileUserimg: fileUserimg,
           address: addressController.text,
+          role: _selectedRole,
           notification: isNotificationsEnabled == true ? "1" : "0");
 
       Future.delayed(
@@ -561,9 +620,75 @@ class UserProfileScreenState extends State<UserProfileScreen> {
         },
       );
 
-      Future.delayed(
+    print("${widget.popToCurrent}"+"++++++++++++++++++++");
+
+      if (widget.from == "login" && widget.popToCurrent != true)  {
+        // Future.delayed(
+        //   Duration.zero,
+        //   () {
+        //     HelperUtils.killPreviousPages(
+        //         context, Routes.personalizedPropertyScreen, {
+        //       "type": PersonalizedVisitType.FirstTime,
+        //     });
+        //
+        //     // HelperUtils.killPreviousPages(
+        //     //     context, Routes.main, {"from": widget.from});
+        //   },
+        // );
+
+          final SharedPreferences prefs = await SharedPreferences
+              .getInstance();
+          String data = prefs.getString('userType') ?? "";
+
+          if(data == "buyer"){
+            Future.delayed(
+              Duration.zero,
+                  () {
+                HelperUtils.showSnackBarMessage(
+                  context,
+                  "successfullyAdded".translate(context),
+                  type: MessageType.success,
+                );
+                HelperUtils.killPreviousPages(
+                  context,
+                  Routes.main,
+                  {"from": "login"},
+                );
+              },
+            );
+          }
+          else{
+            Future.delayed(
+              Duration.zero,
+                  () {
+                HelperUtils.showSnackBarMessage(
+                  context,
+                  "successfullyAdded".translate(context),
+                  type: MessageType.success,
+                );
+                HelperUtils.killPreviousPages(
+                  context,
+                  Routes.main1,
+                  {"from": "login"},
+                );
+              },
+            );
+          }
+
+      }
+      else if (widget.from == "login" && widget.popToCurrent == true) {
+
+        Future.delayed(Duration.zero, () {
+          Navigator.of(context)
+            ..pop()
+            ..pop();
+        });
+      }
+
+
+      widget.from == "login"?null:  Future.delayed(
         Duration.zero,
-        () {
+            () {
           Widgets.hideLoder(context);
           HelperUtils.showSnackBarMessage(
             context,
@@ -572,32 +697,13 @@ class UserProfileScreenState extends State<UserProfileScreen> {
               if (mounted) Navigator.pop(context);
             },
           );
-          if (widget.navigateToHome ?? false) {
-            Navigator.pop(context);
-          }
+          // if (widget.navigateToHome ?? false) {
+          //   Navigator.pop(context);
+          // }
         },
       );
 
-      if (widget.from == "login" && widget.popToCurrent != true) {
-        Future.delayed(
-          Duration.zero,
-          () {
-            HelperUtils.killPreviousPages(
-                context, Routes.personalizedPropertyScreen, {
-              "type": PersonalizedVisitType.FirstTime,
-            });
 
-            // HelperUtils.killPreviousPages(
-            //     context, Routes.main, {"from": widget.from});
-          },
-        );
-      } else if (widget.from == "login" && widget.popToCurrent == true) {
-        Future.delayed(Duration.zero, () {
-          Navigator.of(context)
-            ..pop()
-            ..pop();
-        });
-      }
     } on CustomException catch (e) {
       Future.delayed(Duration.zero, () {
         Widgets.hideLoder(context);

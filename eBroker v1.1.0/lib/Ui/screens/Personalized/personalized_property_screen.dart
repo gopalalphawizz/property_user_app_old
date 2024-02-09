@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
 import 'package:ebroker/data/Repositories/location_repository.dart';
 import 'package:ebroker/data/model/category.dart';
@@ -11,7 +10,7 @@ import 'package:ebroker/utils/string_extenstion.dart';
 import 'package:ebroker/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/Repositories/personalized_feed_repository.dart';
 import '../../../data/cubits/Personalized/add_update_personalized_interest.dart';
 import '../../../data/cubits/Personalized/fetch_personalized_properties.dart';
@@ -74,7 +73,7 @@ class _PersonalizedPropertyScreenState
       backgroundColor: context.color.backgroundColor,
       bottomNavigationBar: _buildBottomNavigationBar(),
       body: BlocConsumer<AddUpdatePersonalizedInterest,
-          AddUpdatePersonalizedInterestState>(listener: (context, state) {
+          AddUpdatePersonalizedInterestState>(listener: (context, state) async {
         if (state is AddUpdatePersonalizedInterestInProgress) {
           Widgets.showLoader(context);
         }
@@ -89,22 +88,46 @@ class _PersonalizedPropertyScreenState
                 forceRefresh: true,
               );
           if (widget.type == PersonalizedVisitType.FirstTime) {
-            Future.delayed(
-              Duration.zero,
-              () {
-                HelperUtils.showSnackBarMessage(
-                  context,
-                  "successfullyAdded".translate(context),
-                  type: MessageType.success,
-                );
-                HelperUtils.killPreviousPages(
-                  context,
-                  Routes.main,
-                  {"from": "login"},
-                );
-              },
-            );
-          } else {
+            final SharedPreferences prefs = await SharedPreferences
+                .getInstance();
+            String data = prefs.getString('userType') ?? "";
+
+            if(data == "buyer"){
+              Future.delayed(
+                Duration.zero,
+                    () {
+                  HelperUtils.showSnackBarMessage(
+                    context,
+                    "successfullyAdded".translate(context),
+                    type: MessageType.success,
+                  );
+                  HelperUtils.killPreviousPages(
+                    context,
+                    Routes.main,
+                    {"from": "login"},
+                  );
+                },
+              );
+            }
+            else{
+              Future.delayed(
+                Duration.zero,
+                    () {
+                  HelperUtils.showSnackBarMessage(
+                    context,
+                    "successfullyAdded".translate(context),
+                    type: MessageType.success,
+                  );
+                  HelperUtils.killPreviousPages(
+                    context,
+                    Routes.main1,
+                    {"from": "login"},
+                  );
+                },
+              );
+            }
+          }
+          else {
             HelperUtils.showSnackBarMessage(
               context,
               "successfullySaved".translate(context),

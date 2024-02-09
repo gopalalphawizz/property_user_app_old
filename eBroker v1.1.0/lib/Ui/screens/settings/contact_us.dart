@@ -249,7 +249,8 @@ class _EmailSendWidgetState extends State<EmailSendWidget> {
           decoration: BoxDecoration(
             boxShadow: const [
               BoxShadow(
-                  blurRadius: 3, color: ui.Color.fromARGB(255, 201, 201, 201))
+                  blurRadius: 3, color: ui.Color.fromARGB(255, 201, 201, 201)
+              )
             ],
             color: context.color.secondaryColor,
             borderRadius: BorderRadius.circular(

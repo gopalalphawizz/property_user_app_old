@@ -22,11 +22,9 @@ class _GalleryViewWidgetState extends State<GalleryViewWidget> {
   late PageController controller =
       PageController(initialPage: widget.initalIndex);
   late int page = widget.initalIndex;
-  InterstitialAdManager admanager = InterstitialAdManager();
 
   @override
   void initState() {
-    admanager.load();
     super.initState();
   }
 
@@ -53,7 +51,6 @@ class _GalleryViewWidgetState extends State<GalleryViewWidget> {
           onPageChanged: (value) async {
             page = value;
             if (page % 2 == 0) {
-              await admanager.show();
             }
             setState(() {});
           },

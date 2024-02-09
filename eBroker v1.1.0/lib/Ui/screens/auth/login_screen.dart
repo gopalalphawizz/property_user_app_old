@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_sim_country_code/flutter_sim_country_code.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
 import '../../../app/routes.dart';
@@ -274,66 +275,68 @@ class LoginScreenState extends State<LoginScreen> {
                 elevation: 0,
                 automaticallyImplyLeading: false,
                 leadingWidth: 100 + 14,
-                leading: Builder(builder: (context) {
-                  if (widget.popToCurrent == true) {
-                    return const SizedBox.shrink();
-                  }
-                  return FittedBox(
-                    fit: BoxFit.none,
-                    child: MaterialButton(
-                      color: context.color.secondaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        side: BorderSide(
-                            color: context.color.borderColor, width: 1.5),
-                      ),
-                      elevation: 0,
-                      onPressed: () {
-                        GuestChecker.set(isGuest: true);
-                        HiveUtils.setIsGuest();
-                        APICallTrigger.trigger();
-                        HiveUtils.setUserIsNotNew();
-                        Navigator.pushReplacementNamed(
-                          context,
-                          Routes.main,
-                          arguments: {
-                            "from": "login",
-                            "isSkipped": true,
-                          },
-                        );
-                      },
-                      child: const Text("Skip"),
-                    ),
-                  );
-                }),
-                actions: [
-                  if (!AppSettings.disableCountrySelection)
-                    Visibility(
-                      visible: !isOtpSent,
-                      child: FittedBox(
-                        fit: BoxFit.none,
-                        child: GestureDetector(
-                          onTap: () {
-                            showCountryCode();
-                          },
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 20,
-                                backgroundColor: context.color.tertiaryColor
-                                    .withOpacity(0.1),
-                                child: Text(flagEmoji ?? ""),
-                              ),
-                              UiUtils.getSvg(
-                                AppIcons.downArrow,
-                                color: context.color.textLightColor,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    )
-                ],
+
+
+                // actions: [
+                //   Builder(builder: (context) {
+                //     if (widget.popToCurrent == true) {
+                //       return const SizedBox.shrink();
+                //     }
+                //     return FittedBox(
+                //       fit: BoxFit.none,
+                //       child: MaterialButton(
+                //         color: context.color.secondaryColor,
+                //         shape: RoundedRectangleBorder(
+                //           borderRadius: BorderRadius.circular(15),
+                //           side: BorderSide(
+                //               color: context.color.borderColor, width: 1.5),
+                //         ),
+                //         elevation: 0,
+                //         onPressed: () {
+                //           GuestChecker.set(isGuest: true);
+                //           HiveUtils.setIsGuest();
+                //           APICallTrigger.trigger();
+                //           HiveUtils.setUserIsNotNew();
+                //           Navigator.pushReplacementNamed(
+                //             context,
+                //             Routes.main,
+                //             arguments: {
+                //               "from": "login",
+                //               "isSkipped": true,
+                //             },
+                //           );
+                //         },
+                //         child: const Text("Skip"),
+                //       ),
+                //     );
+                //   }),
+                //   // if (!AppSettings.disableCountrySelection)
+                //   //   Visibility(
+                //   //     visible: !isOtpSent,
+                //   //     child: FittedBox(
+                //   //       fit: BoxFit.none,
+                //   //       child: GestureDetector(
+                //   //         onTap: () {
+                //   //           showCountryCode();
+                //   //         },
+                //   //         child: Row(
+                //   //           children: [
+                //   //             // CircleAvatar(
+                //   //             //   radius: 20,
+                //   //             //   backgroundColor: context.color.tertiaryColor
+                //   //             //       .withOpacity(0.1),
+                //   //             //   child: Text(flagEmoji ?? ""),
+                //   //             // ),
+                //   //             // UiUtils.getSvg(
+                //   //             //   AppIcons.downArrow,
+                //   //             //   color: context.color.textLightColor,
+                //   //             // ),
+                //   //           ],
+                //   //         ),
+                //   //       ),
+                //   //     ),
+                //   //   )
+                // ],
               ),
               body: buildLoginFields(context),
             ),
@@ -422,11 +425,23 @@ class LoginScreenState extends State<LoginScreen> {
                       if (widget.popToCurrent == true) {
                         Navigator.pop(context);
                       } else {
-                        Navigator.pushReplacementNamed(
-                          context,
-                          Routes.main,
-                          arguments: {"from": "login"},
-                        );
+
+                        final SharedPreferences prefs = await SharedPreferences.getInstance();
+                      String data=  prefs.getString("userType")??"";
+                        if(data=="buyer") {
+                          Navigator.pushReplacementNamed(
+                            context,
+                            Routes.main,
+                            arguments: {"from": "login"},
+                          );
+                        }
+                        else{
+                          Navigator.pushReplacementNamed(
+                            context,
+                            Routes.main1,
+                            arguments: {"from": "login"},
+                          );
+                        }
                       }
                     } else {
                       HiveUtils.setUserIsNotNew();
@@ -675,13 +690,14 @@ class LoginScreenState extends State<LoginScreen> {
             ),
             buildMobileNumberField(),
             SizedBox(
+              height: 20.rh(context),
+            ),
+            buildTermsAndPrivacyWidget(),
+            SizedBox(
               height: size.height * 0.05,
             ),
             buildNextButton(context),
-            SizedBox(
-              height: 20.rh(context),
-            ),
-            buildTermsAndPrivacyWidget()
+
           ]),
     );
   }
@@ -810,8 +826,15 @@ class LoginScreenState extends State<LoginScreen> {
     if (form.validate()) {
       if (widget.isDeleteAccount ?? false) {
       } else {
-        context.read<SendOtpCubit>().sendOTP(
-            phoneNumber: "+${countryCode!}${mobileNumController.text}");
+        if(valuefirst) {
+          context.read<SendOtpCubit>().sendOTP(
+              phoneNumber: "+${countryCode!}${mobileNumController.text}");
+        }else{
+          HelperUtils.showSnackBarMessage(
+              context, UiUtils.getTranslatedLabel(context, "acceptPolicy"),
+              messageDuration: 2);
+          //showSnackBar( UiUtils.getTranslatedLabel(context, "acceptPolicy"), context)
+        }
       }
 
       // firebaseLoginProcess();
@@ -848,6 +871,8 @@ class LoginScreenState extends State<LoginScreen> {
         buttonTitle: UiUtils.getTranslatedLabel(context, "next"),
         disabled: isLoginButtonDisabled,
         onPressed: () {
+
+
           sendVerificationCode();
         },
       ),
@@ -901,6 +926,7 @@ class LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+  bool valuefirst = false;
 
 //otp
   Widget buildTermsAndPrivacyWidget() {
@@ -911,6 +937,16 @@ class LoginScreenState extends State<LoginScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Checkbox(
+              activeColor: tertiaryColor_,
+              value:valuefirst,
+              onChanged: (bool? value) {
+                setState(() {
+                  valuefirst=value??false;
+                 // this.showvalue = value;
+                });
+              },
+            ),
             RichText(
               textAlign: TextAlign.center,
               text: TextSpan(children: [

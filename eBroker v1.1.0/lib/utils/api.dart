@@ -56,6 +56,10 @@ class Api {
   //api fun
   static String apiLogin = "user_signup";
   static String apiUpdateProfile = "update_profile";
+  static String apiStoreinqury = "store_inquriy";
+  static String apiGenerateinqury = "generate_inquiry";
+  static String apiGetinqury = "get_inquriy";
+  static String apiGetdatainqury = "get_generate_inquiry";
   static String apiGetSlider = "get_slider";
   static String apiGetCategories = "get_categories";
   static String apiGetUnit = "get_unit";
@@ -170,6 +174,7 @@ class Api {
   static String limit = "limit";
   static String packageId = "package_id";
   static String notification = "notification";
+  static String role = "role";
   static String v360degImage = "threeD_image";
   static String videoLink = "video_link";
 
@@ -205,7 +210,7 @@ class Api {
     ));
   }
 
-  static Future<Map<String, dynamic>> post(
+  static Future<Map<String, dynamic>>   post(
       {required String url,
       required Map<String, dynamic> parameter,
       Options? options,
@@ -283,9 +288,7 @@ class Api {
           ((useBaseUrl ?? true) ? Constant.baseUrl : "") + url,
           queryParameters: queryParameters,
           options: (useAuthToken ?? true) ? Options(headers: headers()) : null);
-      //log("API is ${url.toString()}");
-      //log("parameters are $queryParameters");
-      //log("response is ${response.data}");
+
       if (response.data['error'] == true) {
         throw ApiException(response.data['code'].toString());
       }

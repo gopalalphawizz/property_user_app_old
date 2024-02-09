@@ -281,8 +281,11 @@ class PropertyRepository {
         Api.propertyType: propertyType,
         "current_user": HiveUtils.getUserId()
       };
+      print("${parameters}"+"((((((((((((((((((((((((((((");
       Map<String, dynamic> response =
           await Api.get(url: Api.apiGetProprty, queryParameters: parameters);
+
+      print("${response}"+"++++++++++++++++++++");
       List<PropertyModel> modelList = (response['data'] as List)
           .map((e) => PropertyModel.fromMap(e))
           .toList();

@@ -34,7 +34,9 @@ class SendOtpCubit extends Cubit<SendOtpState> {
 
       await _authRepository.sendOTP(
         phoneNumber: phoneNumber,
+
         onCodeSent: (verificationId) {
+
           verificationID = verificationId;
           emit(SendOtpSuccess(verificationId: verificationId));
         },

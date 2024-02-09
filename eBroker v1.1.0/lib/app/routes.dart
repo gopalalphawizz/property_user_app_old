@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:ebroker/Ui/screens/Dashboard/dashbord.dart';
 import 'package:ebroker/Ui/screens/Personalized/personalized_property_screen.dart';
 import 'package:ebroker/Ui/screens/home/view_most_liked_properties.dart';
@@ -9,7 +8,6 @@ import 'package:ebroker/Ui/screens/map/property_map_screen.dart';
 import 'package:ebroker/Ui/screens/proprties/AddProperyScreens/select_outdoor_facility.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import '../Ui/screens/Advertisement/create_advertisement_screen.dart';
 import '../Ui/screens/Advertisement/my_advertisment_screen.dart';
 import '../Ui/screens/Articles/article_details.dart';
@@ -24,6 +22,7 @@ import '../Ui/screens/home/search_screen.dart';
 import '../Ui/screens/home/view_most_viewed_properties.dart';
 import '../Ui/screens/home/view_promoted_properties.dart';
 import '../Ui/screens/main_activity.dart';
+import '../Ui/screens/main_activity_screen2.dart';
 import '../Ui/screens/onboarding/onboarding_screen.dart';
 import '../Ui/screens/proprties/AddProperyScreens/add_property_details.dart';
 import '../Ui/screens/proprties/AddProperyScreens/select_type_of_property.dart';
@@ -53,6 +52,7 @@ class Routes {
   static const login = 'login';
   static const completeProfile = 'complete_profile';
   static const main = 'main';
+  static const main1 = 'main1';
   static const home = 'Home';
   static const addProperty = 'addProperty';
   static const waitingScreen = 'waitingScreen';
@@ -113,6 +113,8 @@ class Routes {
             builder: ((context) => const OnboardingScreen()));
       case main:
         return MainActivity.route(routeSettings);
+        case main1:
+        return MainActivity11.route(routeSettings);
       case login:
         return LoginScreen.route(routeSettings);
       case completeProfile:
@@ -159,8 +161,8 @@ class Routes {
         return SubscriptionScreen.route(routeSettings);
       case favoritesScreen:
         return FavoritesScreen.route(routeSettings);
-      case createAdvertismentScreenRoute:
-        return CreateAdvertisementScreen.route(routeSettings);
+      // case createAdvertismentScreenRoute:
+      //   return CreateAdvertisementScreen.route(routeSettings);
       case promotedPropertiesScreen:
         return PromotedPropertiesScreen.route(routeSettings);
       case mostViewedPropertiesScreen:
@@ -172,8 +174,8 @@ class Routes {
       case transactionHistory:
         return TransactionHistory.route(routeSettings);
 
-      case myAdvertisment:
-        return MyAdvertismentScreen.route(routeSettings);
+      // case myAdvertisment:
+      //   return MyAdvertismentScreen.route(routeSettings);
       case personalizedPropertyScreen:
         return PersonalizedPropertyScreen.route(routeSettings);
       case dashboard:

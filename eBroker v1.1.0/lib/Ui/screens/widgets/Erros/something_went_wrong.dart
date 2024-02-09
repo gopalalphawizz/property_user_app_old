@@ -15,7 +15,7 @@ class SomethingWentWrong extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Center(child: SvgPicture.asset(AppIcons.somethingwentwrong)),
+        Center(child: SvgPicture.asset(AppIcons.somethingwentwrong,)),
         SizedBox(
           height: 10,
         ),

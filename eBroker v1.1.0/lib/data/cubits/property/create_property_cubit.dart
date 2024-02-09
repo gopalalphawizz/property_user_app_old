@@ -35,13 +35,19 @@ class CreatePropertyCubit extends Cubit<CreatePropertyState> {
   Future<void> create({required Map<String, dynamic> parameters}) async {
     try {
       emit(CreatePropertyInProgress());
-log("REQUEST PARAMETERS $parameters");
+   log("REQUEST PARAMETERS $parameters");
       var result =
           await _propertyRepository.createProperty(parameters: parameters);
 
       if (result['data'] != null) {
-        emit(CreatePropertySuccess(
-            propertyModel: PropertyModel.fromMap(result['data'][0])));
+        emit(
+
+            CreatePropertySuccess(
+            propertyModel: PropertyModel.fromMap(result['data'][0])
+
+        )
+
+        );
       } else {
         if (result is Map) {
           emit(CreatePropertyFailure(result['message'].toString()));

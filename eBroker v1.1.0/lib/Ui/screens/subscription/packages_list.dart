@@ -10,7 +10,6 @@ import 'package:ebroker/utils/payment/lib/payment_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../../data/cubits/subscription/fetch_subscription_packages_cubit.dart';
 import '../../../data/cubits/subscription/get_subsctiption_package_limits_cubit.dart';
@@ -67,11 +66,9 @@ class _SubscriptionPackageListScreenState
   List mySubscriptions = [];
   bool isLifeTimeSubscription = false;
   bool hasAlreadyPackage = false;
-  InterstitialAdManager interstitialAdManager = InterstitialAdManager();
   @override
   void initState() {
     context.read<FetchSubscriptionPackagesCubit>().fetchPackages();
-    interstitialAdManager.load();
     PaymentGatways.initPaystack();
     mySubscriptions = context
             .read<FetchSystemSettingsCubit>()
@@ -154,12 +151,11 @@ class _SubscriptionPackageListScreenState
           showBackButton: true,
           title: UiUtils.getTranslatedLabel(context, "subsctiptionPlane"),
         ),
-        bottomNavigationBar: const BottomAppBar(
-          child: BannerAdWidget(bannerSize: AdSize.banner),
-        ),
+        // bottomNavigationBar: const BottomAppBar(
+        //   child: BannerAdWidget(bannerSize: AdSize.banner),
+        // ),
         body: WillPopScope(
           onWillPop: () async {
-            await interstitialAdManager.show();
             return true;
           },
           child:

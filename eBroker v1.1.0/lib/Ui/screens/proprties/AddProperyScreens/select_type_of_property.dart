@@ -120,7 +120,7 @@ class _SelectPropertyTypeState extends State<SelectPropertyType> {
             "ddPropertyLbl",
           ),
           actions: const [
-            Text("1/4"),
+            Text("1/2"),
             SizedBox(
               width: 14,
             ),

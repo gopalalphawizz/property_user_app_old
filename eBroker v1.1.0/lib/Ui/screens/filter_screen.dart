@@ -11,8 +11,6 @@ import 'package:ebroker/utils/responsiveSize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
-
 import '../../data/model/google_place_model.dart';
 import '../../utils/api.dart';
 import '../../utils/constant.dart';
@@ -327,7 +325,7 @@ class FilterScreenState extends State<FilterScreen> {
                   const SizedBox(
                     height: 15,
                   ),
-                  const BannerAdWidget(bannerSize: AdSize.banner,)
+                  // const BannerAdWidget(bannerSize: AdSize.banner,)
                 ],
               ),
             ),
